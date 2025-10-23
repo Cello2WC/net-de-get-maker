@@ -6,6 +6,7 @@ SECTION "Header Info", ROMX[$4005]
 	db (((MinigameDataEnd - MinigameDataStart) - 1) / $2000) + 1
 	db GAME_CATEGORY
 	db GAME_GENRE
+	db 1 ; ???
 	db "G000" ; to be assigned by server
 
 SECTION "Game Title", ROMX[$400F]
