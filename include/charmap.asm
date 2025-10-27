@@ -245,65 +245,65 @@
 	charmap "☺", $FB
 	charmap "★", $FC
 	charmap "❤", $FD
-	charmap " ﾟ", $FE
-	charmap " ﾞ", $FF
+	charmap " ﾞ", $FE
+	charmap " ﾟ", $FF
 	
-	charmap "ガ", $FF, $CA
-	charmap "ギ", $FF, $CB
-	charmap "グ", $FF, $CC
-	charmap "ゲ", $FF, $CD
-	charmap "ゴ", $FF, $DE
+	charmap "ガ", $FE, $CA
+	charmap "ギ", $FE, $CB
+	charmap "グ", $FE, $CC
+	charmap "ゲ", $FE, $CD
+	charmap "ゴ", $FE, $DE
 	
-	charmap "ザ", $FF, $CF
-	charmap "ジ", $FF, $D0
-	charmap "ズ", $FF, $D1
-	charmap "ゼ", $FF, $D2
-	charmap "ゾ", $FF, $D3
+	charmap "ザ", $FE, $CF
+	charmap "ジ", $FE, $D0
+	charmap "ズ", $FE, $D1
+	charmap "ゼ", $FE, $D2
+	charmap "ゾ", $FE, $D3
 	
-	charmap "ダ", $FF, $D4
-	charmap "ヂ", $FF, $D5
-	charmap "ヅ", $FF, $D6
-	charmap "デ", $FF, $D7
-	charmap "ド", $FF, $D8
+	charmap "ダ", $FE, $D4
+	charmap "ヂ", $FE, $D5
+	charmap "ヅ", $FE, $D6
+	charmap "デ", $FE, $D7
+	charmap "ド", $FE, $D8
 
-	charmap "バ", $FF, $DF
-	charmap "ビ", $FF, $E0
-	charmap "ブ", $FF, $E1
-	charmap "ベ", $FF, $E2
-	charmap "ボ", $FF, $E3
+	charmap "バ", $FE, $DF
+	charmap "ビ", $FE, $E0
+	charmap "ブ", $FE, $E1
+	charmap "ベ", $FE, $E2
+	charmap "ボ", $FE, $E3
 
-	charmap "が", $FF, $8A
-	charmap "ぎ", $FF, $8B
-	charmap "ぐ", $FF, $8C
-	charmap "げ", $FF, $8D
-	charmap "ご", $FF, $8E
+	charmap "が", $FE, $8A
+	charmap "ぎ", $FE, $8B
+	charmap "ぐ", $FE, $8C
+	charmap "げ", $FE, $8D
+	charmap "ご", $FE, $8E
 	
-	charmap "ざ", $FF, $8F
-	charmap "じ", $FF, $90
-	charmap "ず", $FF, $91
-	charmap "ぜ", $FF, $92
-	charmap "ぞ", $FF, $93
-	
-	charmap "だ", $FF, $94
-	charmap "ぢ", $FF, $95
-	charmap "づ", $FF, $97
-	charmap "で", $FF, $98
-	charmap "ど", $FF, $99
+	charmap "ざ", $FE, $8F
+	charmap "じ", $FE, $90
+	charmap "ず", $FE, $91
+	charmap "ぜ", $FE, $92
+	charmap "ぞ", $FE, $93
 
-	charmap "ば", $FF, $9F
-	charmap "び", $FF, $A0
-	charmap "ぶ", $FF, $A1
-	charmap "べ", $FF, $A2
-	charmap "ぼ", $FF, $A3
+	charmap "だ", $FE, $94
+	charmap "ぢ", $FE, $95
+	charmap "づ", $FE, $97
+	charmap "で", $FE, $98
+	charmap "ど", $FE, $99
 
-	charmap "パ", $FE, $DF
-	charmap "ピ", $FE, $E0
-	charmap "プ", $FE, $E1
-	charmap "ペ", $FE, $E2
-	charmap "ポ", $FE, $E3
+	charmap "ば", $FE, $9F
+	charmap "び", $FE, $A0
+	charmap "ぶ", $FE, $A1
+	charmap "べ", $FE, $A2
+	charmap "ぼ", $FE, $A3
+
+	charmap "パ", $FF, $DF
+	charmap "ピ", $FF, $E0
+	charmap "プ", $FF, $E1
+	charmap "ペ", $FF, $E2
+	charmap "ポ", $FF, $E3
 	
-	charmap "ぱ", $FE, $9F
-	charmap "ぴ", $FE, $A0
-	charmap "ぷ", $FE, $A1
-	charmap "ぺ", $FE, $A2
-	charmap "ぽ", $FE, $A3
+	charmap "ぱ", $FF, $9F
+	charmap "ぴ", $FF, $A0
+	charmap "ぷ", $FF, $A1
+	charmap "ぺ", $FF, $A2
+	charmap "ぽ", $FF, $A3
