@@ -1,6 +1,8 @@
 
 SECTION "API Calls", ROM0[$0150]
 
+; ----- Interrupt functions -----
+
 ; APISetVBlank -- 0150
 ; 
 ; Sets VBlank interrupt handler.
@@ -37,52 +39,123 @@ APISetLCDC::
 APISetSerial::
 	jp $0684
 
+
+
+
+
+
+
+
+; ----- Number printing functions -----
+
+
+
+
+
+; push hl
+; push hl
+; hl = de
+; c = 100
+; call APIDivideWord
+; da = hl ; not a typo
+; pop hl
+; push de
+; call APINumString2
+; pop af
+; call APINumString2
+; pop hl
+; c = 0
+; for b in range(4, 0, b--)
+; 	if [hl] == $10
+; 		if c
+; 			[hl] = $20
+; 		endif
+; 	else if [hl] == $20
+; 		if !c
+; 			[hl] = $10
+; 		endif
+; 	else
+; 		c = 1
+; 	endif
+; 	hl++
+; endfor
+	
+	
+	
+	
+; APINumString4 -- 015C
 ; 
-; ld a, [$C747]
-; ld e, a
-; ld a, [$C748]
-; ld d, a
-; ld hl, $C655
-; call $015C
-;
-; ld a, [$C745]
-; ld e, a
-; ld a, [$C746]
-; ld d, a
-; ld hl, $C655
-; call $015C
+; Converts a 4-digit value to a printable decimal string.
+; Has no error handling, despite it being perfectly possible for
+; the input to be 5 digits long.
 ; 
-; 
-; @param	de	? 
-; @param	hl	? [$c655 in both calls present in base game]
-APIFunction04:: ; 015c
+; @param	de	Value to convert to decimal string. (Valid up to 9999)
+; @param	hl	Pointer to end of string being built. (in WRAM)
+APINumString4:: ; 015c
 	jp $06a6
 
-; ?
-APIFunction05:: ; 015f
+; push hl
+; ld c, 10
+; call APIDivideByte
+; e = h + $20 ; e =     FLOOR(a / 10)
+; a = l       ; a = REMAINDER(a / 10)
+; c = 10
+; call APIDivideByte
+; d = l + $20 ; d = REMAINDER(REMAINDER(a / 10) / 10)
+; a = h + $20 ; a =     FLOOR(REMAINDER(a / 10) / 10)
+; pop hl
+; push hl
+; [hl] = d, a, e, ..
+; pop hl
+; c = 0
+; for b in range(2, 0, b--)
+;	 if [hl] == $10 and c
+; 		[hl] = $20
+; 	else if [hl] == $20 and !c
+; 		[hl] = $10
+; 	else
+; 		c = 1
+; 	endif
+; 	hl++
+; endfor
+
+; APINumString3 -- 015F
+; 
+; Converts a 3-digit value to a printable decimal string.
+; Has no error handling, as it's not needed.
+; 
+; @param	a	Value to convert to decimal string. (Valid up to 255)
+; @param	hl	Pointer to end of string being built. (in WRAM)
+; 
+APINumString3:: ; 015f
 	jp $06df
 
-; APINumString -- 0162
+; APINumString2 -- 0162
 ; 
-; Converts a byte to a printable decimal string.
-; Outputs "NG" if number is greater than 99.
+; Converts a 2-digit value to a printable decimal string.
+; Outputs "NG" if value is greater than 99.
 ; 
-; (calls $2046 to handle conversion. this function seems to be able to handle other bases?)
-; 
-; @param	a	number to convert to decimal string (up to 99)
-; @param	hl	pointer to end of string being built (probably in WRAM)
-APINumString::
+; @param	a	Value to convert to decimal string. (Valid up to 99)
+; @param	hl	Pointer to end of string being built. (in WRAM)
+APINumString2::
 	jp $0722
 
-; APIDigitString -- 0165
+; APINumString1 -- 0165
 ; 
-; Converts a digit to a printable decimal character.
-; Outputs "N" if digit is greater than 9
+; Converts a 1-digit value to a printable decimal string.
+; Outputs "N" if value is greater than 9
 ; 
-; @param	a	digit to convert to decimal char (up to 9)
-; @param	hl	pointer to end of string being build (probably in WRAM)
-APIDigitString::
+; @param	a	Value to convert to decimal string. (Valid up to 9)
+; @param	hl	Pointer to end of string being built. (in WRAM)
+APINumString1::
 	jp $0747
+
+
+
+
+
+
+; ----- LCD functions -----
 
 ; APISetLYC -- 0168
 ; 
@@ -115,6 +188,13 @@ APIEnableLCD::
 ; Safely disables the LCD
 APIDisableLCD::
 	jp $0782
+
+
+
+
+
+
+; ----- Palette functions -----
 
 ; APISetBGPal -- 0171
 ; 
@@ -224,6 +304,13 @@ APIResolveAllPalettes:: ; 0189
 APIUpdatePalettesVBlank:: ; 018c
 	jp $0995
 
+
+
+
+
+
+; ----- OAM functions -----
+
 ; APILoadOAMDMARoutine -- 018F
 ; 
 ; Loads the default OAM DMA routine to $FF80
@@ -235,6 +322,13 @@ APILoadOAMDMARoutine::
 ; Fills $FE00 through $FEFF with $00
 APIClearOAM::
 	jp $0a03
+
+
+
+
+
+
+; ----- VRAM functions -----
 
 ; APIClearVRAM -- 0195
 ; 
@@ -316,6 +410,13 @@ APIScreenRectAttr:: ; 01a4
 APIFunction1D:: ; 01a7
 	jp $0b5f
 
+
+
+
+
+
+; ----- Stubbed functions -----
+
 ; APIStub1 -- 01AA
 ; 
 ; A single `ret` instruction.
@@ -334,96 +435,235 @@ APIStub2::
 APIStub3::
 	jp $0c5e
 
+
+
+
+
+
+; ----- Filesystem functions -----
+
+
+; APIValidateFilesystem -- 01B3
 ; 
-; 
-; [$0000] = $0A
-; [$0400] = $00
-; [$0800] = $01
-; a = 0
-; if APIFunction26()
-; 	call APIFunction27
-; 	bc = ca
-;	f = a?
-;	a = 2
-;	if !f, 
-;		a = 1
-;		call APIFunction28
-;		a = 0
-;		call APIFunction28
-;		a = 1
-;	endif
-; endif
-; [$0400] = [$FFAF]
-; [$0800] = [$FFB0]
-; [$0000] = 0
-; 
-; 	
-; 
-; 
-APIFunction21:: ; 01b3
+; Checks SRAM filesystem for a valid checksum.
+; If it's invalid, attempts to rebuild the filesystem.
+; If that fails, deletes the filesystem. (?????)
+APIValidateFilesystem::
 	jp $0c6a
 
-; with all 00 args: 
-APIFunction22:: ; 01b6
+
+; APIOpenFile -- 01B6
+; 
+; Retrieves a pointer to a file with the given name,
+; creating that file if necessary.
+; 
+; Returns an error code if the file's header points to the wrong data, 
+; or if the filesystem is out of space for the file.
+; 
+; @param	bc	Requested file size. (Only used if the file is being created)
+; @param	de	Pointer to filename string. (Max. 4 bytes)
+;               It is standard to name your game's save file after its game ID.
+; 
+; @return	b	Return state, from [FOUND_OR_CREATED, ENTRIES_FULL, BAD_FILENAME_OR_NO_SPACE, UNKNOWN_ERROR]
+; @return	c	1 if a new file was created, 0 otherwise
+; @return	hl and wOpenFileData		Pointer to file data, after block header.
+; @return	a  and wOpenFileIndex		File's index, or $FF if none could be found or created.
+APIOpenFile::
 	jp $0ca5
 
-; with all 00 args: 
-APIFunction23:: ; 01b9
+
+; APICloseFile -- 01B9
+; 
+; Fixes open file's checksum,
+; and closes SRAM.
+APICloseFile::
 	jp $0d30
 
-; with all 00 args: 
-APIFunction24:: ; 01bc
+
+; APIDeleteFile -- 01BC
+; 
+; Deletes a file from the SRAM filesystem.
+; 
+; Returns an error code if the file wasn't found,
+; OR IF THE FILE IN QUESTION IS CORRUPTED,
+; EITHER BY FILENAME, OR BY CHECKSUM.
+; 
+; This function CANNOT delete a corrupted file.
+; For some reason.
+; 
+; @param	de	Pointer to filename string. (Max. 4 bytes)
+; 
+; @return	a	Return code, from [0 = OK, -1 = NOT_FOUND, -2 = BAD_FILENAME, -3 = BAD_CHECKSUM].
+APIDeleteFile::
 	jp $0d50
 
-; with all 00 args: 
-APIFunction25:: ; 01bf
+
+; APIFileBlockChecksum -- 01BF
+; 
+; Returns the expected checksum for a given file block.
+; 
+; @param	a	File index.
+; 
+; @return	bc	Calculated file checksum.
+APIFileBlockChecksum::
 	jp $0f15
 
-; with all 00 args: 
-APIFunction26:: ; 01c2
+
+; APIFileSystemChecksum -- 01C2
+; 
+; Calculates the expected checksum for the SRAM filesystem,
+; and returns whether it matches the stored checksum.
+; 
+; @return	de		Calculated checksum for file system.
+; @return	hl		Stored checksum for file system.
+; @return	zflag	Whether these checksums are equal.
+APIFileSystemChecksum::
 	jp $106d
 
-; with all 00 args: 
-APIFunction27:: ; 01c5
+
+; APIRebuildFileEntries -- 01C5
+; 
+; Rebuilds the file entry table (0:A000-0:A30D),
+; based on the file block table (0:A30E-1:BFFF)
+; 
+; @return	a	Number of files processed.
+; @return	c	0 if table was rebuilt, 1 if it was already valid.
+APIRebuildFileEntries::
 	jp $108e
 
-; with all 00 args: 
-APIFunction28:: ; 01c8
+
+; APIEraseSRAMBank -- 01C8
+; 
+; Zeroes-out bank `a` of SRAM.
+; 
+; @param	a	SRAM bank to zero out.
+APIEraseSRAMBank::
 	jp $113e
 
-; with all 00 args: 
-APIFunction29:: ; 01cb
+; APIGetFileEntry -- 01CB
+; 
+; Returns pointer to the header of a given file in the SRAM filesystem.
+; Strictly speaking, just returns `$A002 + (a*6)` in de.
+; 
+; @param	a	File index to retrieve.
+; 
+; @return	de	Pointer to a'th file's entry.
+APIGetFileEntry::
 	jp $114f
 
-; with all 00 args: 
-APIFunction2A:: ; 01ce
+
+; APIGetFileBlock -- 01CE
+; 
+; Returns pointer to the block data of a given file in the SRAM filesystem.
+; 
+; @param	a	File index to retrieve.
+; 
+; @return	de	Pointer to a'th file's block data.
+APIGetFileBlock::
 	jp $1162
 
-; with all 00 args: 
-APIFunction2B:: ; 01d1
+
+; APISetOpenFile -- 01D1
+; 
+; Sets wOpenFile to `ahl` in little-endian.
+; Preserves all registers.
+; 
+; @param	hl	File data pointer (after header).
+; @param	a	File index, or $FF if the file doesn't exist.
+APISetOpenFile::
 	jp $1176
 
-; with all 00 args: 
-APIFunction2C:: ; 01d4
+
+
+
+
+
+; ----- Text functions -----
+
+
+
+
+; [$C1AF] = a
+; [$C1C2] = 0
+; [$C1C0] = 0
+; [$C1C1] = 0
+; [$C219][0..2] = 0
+; hl = $C1B5
+; [hl][0..2] = $9800
+; a = [$FF4F] & %0000_0001 ; vram bank
+; push af
+; [$FF4F] = [$C1AF]
+; [$C1A3] = [$C1AF] ? 7 | %0000_1000 : 7
+; [$C1B0] = [$C1AF] ? 0 | %0000_1000 : 0
+; [$C1B1] = [$C1AF] ? 1 | %0000_1000 : 1
+; [$C1B2] = [$C1AF] ? 2 | %0000_1000 : 2
+; [$C1B7] = [$C1AF] ? 0 | %0000_1000 : 0
+; hl = $4EE0
+; de = $97E0 ; GFX tile $17E
+; bc = $0020 ; 2 tiles
+; call APICopyVRAM
+; [$C1BF] = 0
+; pop af
+; [$FF4F] = a
+; return
+
+; APILoadDakutenGFX -- 01D4
+; 
+; Loads GFX for the " ﾞ" and " ﾟ" characters into tiles $7E and $7F of the given VRAM bank
+; 
+; @param	a	VRAM bank to load graphics into.
+APILoadDakutenGFX::
 	jp $269c
 
-; with all 00 args: 
+; $C1C0[0..2] = de
 APIFunction2D:: ; 01d7
 	jp $271c
 
-; with all 00 args: 
+; $C219[0..2] = de 
 APIFunction2E:: ; 01da
 	jp $2723
 
-; with all 00 args: 
+; $C1AB[0..2] = de 
 APIFunction2F:: ; 01dd
 	jp $272a
 
-; with all 00 args: 
+; push [$FF4F] & %0000_0001
+; [$FF4F] = [$C1AF]
+; de = $96C0 ; GFX tile $16C
+; bc = $120  ; 18 tiles
+; call APIFunction19
+; a = [$FF9D]
+; de = $8760 ; GFX tile $076
+; bc = $00A0 ; 10 tiles
+; call APIFunction19
+; pop [$FF4F]
+; return
 APIFunction30:: ; 01e0
 	jp $2731
 
-; with all 00 args: 
+; hl = de + (a*8)
+; [$FF9E] = c
+; a = [hl++]
+; b = a
+; [$C1A4] = ++a
+; a = [hl++]
+; c = a
+; [$C1A7] = ++++a
+; push hl
+; call APIFunction43
+; de = hl + $C1B5[0..2]
+; pop hl
+; c = [$FF9E]
+; [$C1A8] = [hl++]
+; a = [hl++]
+; if !a
+; 	a = c
+; endif
+; [$C1A9] = a
+; [$C1AA] = [hl++]
+; [$C1A5][0..2] = de
+; hl = de
+; return [$C1AA]?
 APIFunction31:: ; 01e3
 	jp $2753
 	
@@ -509,10 +749,53 @@ APIFunction4A:: ; 022e
 	jp $2023
 APIFunction4B:: ; 0231
 	jp $2035
-APIFunction4C:: ; 0234
+	
+	
+; hl = a
+; for b in range(8, 0, b--)
+; 	hl *= 2
+; 	if h >= c
+; 		h -= c
+; 		l++
+; 	endif
+; endfor
+
+; APIDivideByte
+; 
+; Returns `a` / `c` as `h` R `l`.
+; 
+; @param	a	Dividend
+; @param	c	Divisor
+; 
+; @return	h	Quotient
+; @return	l	Remainder
+APIDivideByte:: ; 0234
 	jp $2046
-APIFunction4D:: ; 0237
+	
+; e = 0
+; b = 16
+; for b in range(16, 0, b--)
+; 	ehl *= 2
+; 	if e >= c
+; 		e -= c
+; 		l++
+; 	endif
+; endfor
+; h = e
+
+; APIDivideWord
+; 
+; Returns `hl` / `c` as `h` R `l`.
+; 
+; @param	hl	Dividend
+; @param	c	Divisor
+; 
+; @return	h	Quotient
+; @return	l	Remainder
+APIDivideWord:: ; 0237
 	jp $2057
+	
+	
 APIFunction4E:: ; 023a
 	jp $206a
 APIFunction4F:: ; 023d
@@ -568,9 +851,16 @@ APIFunction57:: ; 0255
 	
 ; 
 ; 
+; 
+; 
+; # items + 4-byte data table
+;  
+; 
+; 
+; 
 ; [$C1C5->$C1C6] = hl (little endian)
 ; 
-; @param	hl	pointer to table of pointers to tables of pointers to # items + 4-byte data table
+; @param	hl	pointer to table of pointers to tables of pointers to tables of 4-byte values starting with length byte
 ; 				[G010 has table $01,$57, $75,$59, $83,$59, $00]
 				; $5701 - $0F,$57, $84,$57, $ED,$57, $56,$58, $AB,$58, $14,$59, $75,$59, $1D,$00
 				; $570F - $1D, 
@@ -658,7 +948,27 @@ APIFunction60:: ; 0270
 	jp $25cb
 APIFunction61:: ; 0273
 	jp $25ef
-APIFunction62:: ; 0276
+	
+; APICopy
+; 
+; Copies data from one location to another.
+; Simple as that!
+; 
+; *(Does nothing about VRAM inaccessibility.
+; If you're looking to copy to VRAM, see [APICopyVRAM].)
+; 
+; **(Does nothing to prepare SRAM to be in the proper state.
+; If you're looking to copy to your game's save file,
+; see [APIOpenFile] and [APICloseFile] first.)
+; 
+; @param	hl	Source
+; @param	de	Destination
+; @param	bc	Length
+; 
+; @see	APICopyVRAM
+; @see	APIOpenFile
+; @see	APICloseFile
+APICopy:: ; 0276
 	jp $2613
 	
 APIFunction63:: ; 0279
