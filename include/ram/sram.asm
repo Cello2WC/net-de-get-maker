@@ -11,7 +11,7 @@ ENDM
 
 DEF _loop_index = 0
 REPT 130
-file_entry_struct _loop_index
+file_entry_struct {d:_loop_index}
 DEF _loop_index += 1
 ENDR
 PURGE _loop_index
@@ -82,7 +82,7 @@ sRecentGame1:: db
 file_block_struct G000
 sG000HighScore:: dw
 file_block_struct G001
-sG000HighScore:: db
+sG001HighScore:: db
 file_block_struct G002
 sG002HighScore:: dw
 file_block_struct G003

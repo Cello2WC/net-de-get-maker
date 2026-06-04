@@ -1,577 +1,23 @@
 
 SECTION "API Calls", ROM0[$0150]
 
-; ----- Interrupt functions -----
+include "include/api/interrupt.asm"
+include "include/api/printnum.asm"
+include "include/api/lcd.asm"
+include "include/api/palette.asm"
+include "include/api/oam.asm"
+include "include/api/video.asm"
+include "include/api/stubbed.asm"
+include "include/api/filesystem.asm"
 
-; APISetVBlank -- 0150
-; 
-; Sets VBlank interrupt handler.
-; Please call with interrupts disabled.
-; 
-; @param	de	function pointer, or $0000 for none
-APISetVBlank::
-	jp $0661
 
-; APISetTimer -- 0153
-; 
-; Sets Timer interrupt handler.
-; Please call with interrupts disabled.
-; 
-; @param	de	function pointer, or $0000 for none
-APISetTimer::
-	jp $0668
 
-; APISetLCDC -- 0156
-; 
-; Sets LCDC interrupt handler.
-; Please call with interrupts disabled.
-; 
-; @param	de	function pointer, or $0000 for none
-APISetLCDC::
-	jp $067d
 
-; APISetSerial -- 0159
-; 
-; Sets Serial interrupt handler.
-; Please call with interrupts disabled.
-; 
-; @param	de	function pointer, or $0000 for none
-APISetSerial::
-	jp $0684
 
 
 
 
 
-
-
-
-; ----- Number printing functions -----
-
-
-
-
-
-; push hl
-; push hl
-; hl = de
-; c = 100
-; call APIDivideWord
-; da = hl ; not a typo
-; pop hl
-; push de
-; call APINumString2
-; pop af
-; call APINumString2
-; pop hl
-; c = 0
-; for b in range(4, 0, b--)
-; 	if [hl] == $10
-; 		if c
-; 			[hl] = $20
-; 		endif
-; 	else if [hl] == $20
-; 		if !c
-; 			[hl] = $10
-; 		endif
-; 	else
-; 		c = 1
-; 	endif
-; 	hl++
-; endfor
-	
-	
-	
-	
-; APINumString4 -- 015C
-; 
-; Converts a 4-digit value to a printable decimal string.
-; Has no error handling, despite it being perfectly possible for
-; the input to be 5 digits long.
-; 
-; @param	de	Value to convert to decimal string. (Valid up to 9999)
-; @param	hl	Pointer to end of string being built. (in WRAM)
-APINumString4:: ; 015c
-	jp $06a6
-
-; push hl
-; ld c, 10
-; call APIDivideByte
-; e = h + $20 ; e =     FLOOR(a / 10)
-; a = l       ; a = REMAINDER(a / 10)
-; c = 10
-; call APIDivideByte
-; d = l + $20 ; d = REMAINDER(REMAINDER(a / 10) / 10)
-; a = h + $20 ; a =     FLOOR(REMAINDER(a / 10) / 10)
-; pop hl
-; push hl
-; [hl] = d, a, e, ..
-; pop hl
-; c = 0
-; for b in range(2, 0, b--)
-;	 if [hl] == $10 and c
-; 		[hl] = $20
-; 	else if [hl] == $20 and !c
-; 		[hl] = $10
-; 	else
-; 		c = 1
-; 	endif
-; 	hl++
-; endfor
-
-; APINumString3 -- 015F
-; 
-; Converts a 3-digit value to a printable decimal string.
-; Has no error handling, as it's not needed.
-; 
-; @param	a	Value to convert to decimal string. (Valid up to 255)
-; @param	hl	Pointer to end of string being built. (in WRAM)
-; 
-APINumString3:: ; 015f
-	jp $06df
-
-; APINumString2 -- 0162
-; 
-; Converts a 2-digit value to a printable decimal string.
-; Outputs "NG" if value is greater than 99.
-; 
-; @param	a	Value to convert to decimal string. (Valid up to 99)
-; @param	hl	Pointer to end of string being built. (in WRAM)
-APINumString2::
-	jp $0722
-
-; APINumString1 -- 0165
-; 
-; Converts a 1-digit value to a printable decimal string.
-; Outputs "N" if value is greater than 9
-; 
-; @param	a	Value to convert to decimal string. (Valid up to 9)
-; @param	hl	Pointer to end of string being built. (in WRAM)
-APINumString1::
-	jp $0747
-
-
-
-
-
-
-; ----- LCD functions -----
-
-; APISetLYC -- 0168
-; 
-; sets rLYC, and configures the STAT interrupt appropriately
-; 
-; @param	a	value to set rLYC to, or 0 to disable the interrupt
-APISetLYC:: ; 0168
-	jp $0756
-
-; APIEnableLCD -- 016B
-; 
-; Clears pending interrupts and sets LCD to default settings.
-; 
-; rIF = 0 ; clear interrupts
-; APISetLYC(0)
-; rLCDC = %1100_0011
-; - 1 - LCD enabled
-; - 1 - Window map = 9C00
-; - 0 - Window off
-; - 0 - Tile data = 8800
-; - 0 - BG map = 9800
-; - 0 - 8×8 OBJs
-; - 1 - OBJs on
-; - 1 - Priority enabled
-APIEnableLCD::
-	jp $0777
-
-; APIDisableLCD -- 016E
-; 
-; Safely disables the LCD
-APIDisableLCD::
-	jp $0782
-
-
-
-
-
-
-; ----- Palette functions -----
-
-; APISetBGPal -- 0171
-; 
-; Sets one BG palette.
-; Can be called repeatedly to copy over consecutive
-; palette data to consecutive palette indices.
-; 
-; @param	a	palette # (0-7)
-; @param	hl	pointer to 8 bytes of palette data
-APISetBGPal::
-	jp $0799
-
-; APISetOBPal -- 0174
-; 
-; Sets one OBJ palette.
-; Can be called repeatedly to copy over consecutive
-; palette data to consecutive palette indices.
-; 
-; @param	a	palette # (0-7)
-; @param	hl	pointer to 8 bytes of palette data
-APISetOBPal::
-	jp $07c0
-
-; APIUnpackAllPalettes -- 0177
-; 
-; Unpacks palette data to wUnpackedPalettes
-; 
-; [little endian]
-; 0bbb_bbgg_gggr_rrrr -> 0000_0bbb_bb00_0000, 0000_0ggg_gg00_0000, 0000_0rrr_rr00_0000
-; 
-; [wPalUnpackScale] = APIScaleAllPalettes(a)
-; 
-; @param	a	scale, as index of [0.25, 0.5, 1, 2, 4, 8, 16, 32]
-; @param	hl	pointer to packed palette data
-APIUnpackAllPalettes:: ; 0177
-	jp $07e7
-
-; APIPackAllPalettes -- 017A
-; 
-; Packs palette data to wIntermediatePals
-; [wPalPackScale] = APIScaleAllPalettes(a)
-; 
-; @param	a	scale, as index of [0.25, 0.5, 1, 2, 4, 8, 16, 32] 
-; @param	hl	pointer to unpacked palette data
-APIPackAllPalettes:: ; 017a
-	jp $0805
-
-
-; APIApplyAllPalettes -- 017D
-; 
-; Sets up any palettes that were 
-; unpacked by [APIUnpackPalettes] or packed by [APIPackPalettes]
-; to be applied during VBlank by [APIUpdatePalettesVBlank].
-; 
-; Calls [APIResolveAllPalettes] as part of its operation.
-; 
-; @see	APIUnpackPalettes
-; @see	APIUnpackAllPalettes
-; @see	APIPackPalettes
-; @see	APIPackAllPalettes
-; @see	APIUpdatePalettesVBlank
-APIApplyAllPalettes:: ; 017d
-	jp $0830
-
-
-; APIScaleAllPalettes -- 0180
-; 
-; Bit-shifts unpacked palette data at wUnpackedPalettes
-; 
-; @param	a	Denotes number of bits to shift palettes left by, as index of [-2, -1, 0, 1, 2, 3, 4, 5]
-;
-; @return	a	Scale value as one of [$80, $40, $20, $10, $08, $04, $02, $01]
-APIScaleAllPalettes:: ; 0180
-	jp $088d
-
-; APIPackPalettes -- 0183
-; 
-; Packs c palettes from hl to de
-; 
-; @param	c	Number of unpacked palettes to process
-; @param	hl	Pointer to unpacked palette data
-; @param	de	Pointer to packed palette destination
-APIPackPalettes:: ; 0183
-	jp $08fb
-
-; APIUnpackPalettes -- 0186
-; 
-; Unpacks c palettes from hl to de
-; 
-; @param	c	Number of packed palettes to process
-; @param	hl	Pointer to packed palette data
-; @param	de	Pointer to unpacked palette destination
-APIUnpackPalettes:: ; 0186
-	jp $0925
-	
-; APIResolveAllPalettes -- 0189
-; 
-; @param	hl	Pointer to unresolved palettes
-; @param	de	Pointer to palette data destination
-APIResolveAllPalettes:: ; 0189
-	jp $096f
-
-; APIUpdatePalettesVBlank -- 018C
-; 
-; Updates palettes from wBGPals and wOBPals,
-; only if wPalUpdate set to TRUE.
-APIUpdatePalettesVBlank:: ; 018c
-	jp $0995
-
-
-
-
-
-
-; ----- OAM functions -----
-
-; APILoadOAMDMARoutine -- 018F
-; 
-; Loads the default OAM DMA routine to $FF80
-APILoadOAMDMARoutine::
-	jp $09eb
-
-; APIClearOAM -- 0192
-; 
-; Fills $FE00 through $FEFF with $00
-APIClearOAM::
-	jp $0a03
-
-
-
-
-
-
-; ----- VRAM functions -----
-
-; APIClearVRAM -- 0195
-; 
-; Fills both banks of VRAM from $8000 through $9FFF with $00,
-; while dealing with inaccessibility.
-APIClearVRAM::
-	jp $0a0e
-
-; APICopyVRAM -- 0198
-; 
-; Copies data into VRAM,
-; while dealing with inaccessibility.
-; 
-; @param	hl	source
-; @param	de	destination
-; @param	bc	length
-APICopyVRAM::
-	jp $0a50
-
-; 
-; if h < $60
-; 	[$FF9D][0..2] = [$FFAB][0..2]
-; 	di
-; 	[$27FF][0..2], [$FFAB][0..2], [$C113][0..2] = [$C21C][0..2]
-; 	ei
-; 	call APICopyVRAM
-; 	di
-; 	[$27FF][0..2], [$FFAB][0..2], [$C113][0..2] = [$FF9D][0..2]
-;	ei
-; else
-; 	[$FF9D][0..2] = [$FFAD][0..2]
-; 	di
-; 	[$37FF][0..2], [$FFAD][0..2], [$C115][0..2] = [$C21C][0..2]
-; 	ei
-; 	call APICopyVRAM
-; 	di
-; 	[$37FF][0..2], [$FFAD][0..2], [$C115][0..2] = [$FF9D][0..2]
-; 	ei
-; endif
-; 
-; @param	hl	source
-; @param	de	destination
-; @param	bc	length
-APIFunction19:: ; 019b
-	jp $0a68
-
-; Duplicate of APIFunction19
-APIFunction1A:: ; 019e
-	jp $0a68
-
-; APIScreenRect -- 01A1
-; 
-; Copies data into a rectangle of screen space,
-; while dealing with inaccessibility.
-; 
-; @param	b	width
-; @param	c	height
-; @param	hl	source
-; @param	de	destination (probably an address within either tilemap)
-APIScreenRect:: ; 01a1
-	jp $0ae4
-
-; APIScreenRect -- 01A4
-; 
-; Copies data into a rectangle of screen space,
-; first to bank 0, then to bank 1
-; while dealing with inaccessibility.
-; 
-; @param	b	width
-; @param	c	height
-; @param	hl	source (tiles, then attributes)
-; @param	de	destination (probably an address within either tilemap)
-APIScreenRectAttr:: ; 01a4
-	jp $0b15
-
-; ?
-; looks kinda like APIFunction19
-; this code makes my eyes go fuzzy
-APIFunction1D:: ; 01a7
-	jp $0b5f
-
-
-
-
-
-
-; ----- Stubbed functions -----
-
-; APIStub1 -- 01AA
-; 
-; A single `ret` instruction.
-APIStub1::
-	jp $0c5c
-
-; APIStub2 -- 01AD
-; 
-; A single `ret` instruction.
-APIStub2::
-	jp $0c5d
-
-; APIStub3 -- 01B0
-; 
-; A single `ret` instruction.
-APIStub3::
-	jp $0c5e
-
-
-
-
-
-
-; ----- Filesystem functions -----
-
-
-; APIValidateFilesystem -- 01B3
-; 
-; Checks SRAM filesystem for a valid checksum.
-; If it's invalid, attempts to rebuild the filesystem.
-; If that fails, deletes the filesystem. (?????)
-APIValidateFilesystem::
-	jp $0c6a
-
-
-; APIOpenFile -- 01B6
-; 
-; Retrieves a pointer to a file with the given name,
-; creating that file if necessary.
-; 
-; Returns an error code if the file's header points to the wrong data, 
-; or if the filesystem is out of space for the file.
-; 
-; @param	bc	Requested file size. (Only used if the file is being created)
-; @param	de	Pointer to filename string. (Max. 4 bytes)
-;               It is standard to name your game's save file after its game ID.
-; 
-; @return	b	Return state, from [FOUND_OR_CREATED, ENTRIES_FULL, BAD_FILENAME_OR_NO_SPACE, UNKNOWN_ERROR]
-; @return	c	1 if a new file was created, 0 otherwise
-; @return	hl and wOpenFileData		Pointer to file data, after block header.
-; @return	a  and wOpenFileIndex		File's index, or $FF if none could be found or created.
-APIOpenFile::
-	jp $0ca5
-
-
-; APICloseFile -- 01B9
-; 
-; Fixes open file's checksum,
-; and closes SRAM.
-APICloseFile::
-	jp $0d30
-
-
-; APIDeleteFile -- 01BC
-; 
-; Deletes a file from the SRAM filesystem.
-; 
-; Returns an error code if the file wasn't found,
-; OR IF THE FILE IN QUESTION IS CORRUPTED,
-; EITHER BY FILENAME, OR BY CHECKSUM.
-; 
-; This function CANNOT delete a corrupted file.
-; For some reason.
-; 
-; @param	de	Pointer to filename string. (Max. 4 bytes)
-; 
-; @return	a	Return code, from [0 = OK, -1 = NOT_FOUND, -2 = BAD_FILENAME, -3 = BAD_CHECKSUM].
-APIDeleteFile::
-	jp $0d50
-
-
-; APIFileBlockChecksum -- 01BF
-; 
-; Returns the expected checksum for a given file block.
-; 
-; @param	a	File index.
-; 
-; @return	bc	Calculated file checksum.
-APIFileBlockChecksum::
-	jp $0f15
-
-
-; APIFileSystemChecksum -- 01C2
-; 
-; Calculates the expected checksum for the SRAM filesystem,
-; and returns whether it matches the stored checksum.
-; 
-; @return	de		Calculated checksum for file system.
-; @return	hl		Stored checksum for file system.
-; @return	zflag	Whether these checksums are equal.
-APIFileSystemChecksum::
-	jp $106d
-
-
-; APIRebuildFileEntries -- 01C5
-; 
-; Rebuilds the file entry table (0:A000-0:A30D),
-; based on the file block table (0:A30E-1:BFFF)
-; 
-; @return	a	Number of files processed.
-; @return	c	0 if table was rebuilt, 1 if it was already valid.
-APIRebuildFileEntries::
-	jp $108e
-
-
-; APIEraseSRAMBank -- 01C8
-; 
-; Zeroes-out bank `a` of SRAM.
-; 
-; @param	a	SRAM bank to zero out.
-APIEraseSRAMBank::
-	jp $113e
-
-; APIGetFileEntry -- 01CB
-; 
-; Returns pointer to the header of a given file in the SRAM filesystem.
-; Strictly speaking, just returns `$A002 + (a*6)` in de.
-; 
-; @param	a	File index to retrieve.
-; 
-; @return	de	Pointer to a'th file's entry.
-APIGetFileEntry::
-	jp $114f
-
-
-; APIGetFileBlock -- 01CE
-; 
-; Returns pointer to the block data of a given file in the SRAM filesystem.
-; 
-; @param	a	File index to retrieve.
-; 
-; @return	de	Pointer to a'th file's block data.
-APIGetFileBlock::
-	jp $1162
-
-
-; APISetOpenFile -- 01D1
-; 
-; Sets wOpenFile to `ahl` in little-endian.
-; Preserves all registers.
-; 
-; @param	hl	File data pointer (after header).
-; @param	a	File index, or $FF if the file doesn't exist.
-APISetOpenFile::
-	jp $1176
 
 
 
@@ -691,7 +137,7 @@ APIScrollText::
 APIFunction34:: ; 01ec
 	jp $27c1
 	
-; APIDrawString -- 01ef
+; APIDrawString -- 01EF
 ; 
 ; Prints a string to the screen instantly (no scrolling)
 ; Position is offset from last text box drawn with APITextBox [01E6]
@@ -711,6 +157,9 @@ APIFunction37:: ; 01f5
 	jp $2945
 APIFunction38:: ; 01f8
 	jp $294e
+	
+	
+	
 APIFunction39:: ; 01fb
 	jp $2bfe
 APIFunction3A:: ; 01fe
@@ -735,75 +184,58 @@ APIFunction43:: ; 0219
 	jp $2fe0
 APIFunction44:: ; 021c
 	jp $3031
+	
+	
+; push af
+; push bc
+; push de
+; push hl
+; call APIFunction3B
+; hl = $C20A[0..2]
+; e = ([$C20E] * [$C212]) * [$C210]
+; a = 0
+; while(True) {
+; 	push af
+; 	if a < e
+; 		do {
+; 			while (a = [hl++]) != 0 {}
+; 			a = hl[-2]
+; 		} while (a == 2)
+; 		pop af
+; 		a++
+; 		continue
+; 	else
+; 		pop af
+; 		push [$C1BD]
+; 		[$C1BD] = [$C20E]
+; 		d = 0
+; 		push [$C1BD]
+; 		push de
+; 		e = ([$C212] * (([$C20E] - [$C1BD]) <<c 1) + (([$C20E] - [$C1BD]) <<c 1)) >> 1
+; 		
+; 		
+; 		
+; 	endif
+; }
 APIFunction45:: ; 021f
 	jp $30bc
+	
+	
+; pop hl
+; pop de
+; pop bc
+; pop af
+; ret
 APIFunction46:: ; 0222
 	jp $3185
-APIFunction47:: ; 0225
-	jp $2000
-APIFunction48:: ; 0228
-	jp $200a
-APIFunction49:: ; 022b
-	jp $2012
-APIFunction4A:: ; 022e
-	jp $2023
-APIFunction4B:: ; 0231
-	jp $2035
-	
-	
-; hl = a
-; for b in range(8, 0, b--)
-; 	hl *= 2
-; 	if h >= c
-; 		h -= c
-; 		l++
-; 	endif
-; endfor
 
-; APIDivideByte
-; 
-; Returns `a` / `c` as `h` R `l`.
-; 
-; @param	a	Dividend
-; @param	c	Divisor
-; 
-; @return	h	Quotient
-; @return	l	Remainder
-APIDivideByte:: ; 0234
-	jp $2046
-	
-; e = 0
-; b = 16
-; for b in range(16, 0, b--)
-; 	ehl *= 2
-; 	if e >= c
-; 		e -= c
-; 		l++
-; 	endif
-; endfor
-; h = e
 
-; APIDivideWord
-; 
-; Returns `hl` / `c` as `h` R `l`.
-; 
-; @param	hl	Dividend
-; @param	c	Divisor
-; 
-; @return	h	Quotient
-; @return	l	Remainder
-APIDivideWord:: ; 0237
-	jp $2057
-	
-	
-APIFunction4E:: ; 023a
-	jp $206a
-APIFunction4F:: ; 023d
-	jp $206c
-APIFunction50:: ; 0240
-	jp $218f
-APIFunction51:: ; 0243
-	jp $2198
+
+
+
+include "include/api/math.asm"
+
+
 	
 ; APILoadSong - 0246
 ; 
@@ -816,6 +248,23 @@ APIFunction51:: ; 0243
 APILoadSong::
 	jp $21d7
 
+; [rBankBNum ($37FF)],            [$C115] = [$C663]
+; [rBankBRomFlashSelect ($3800)], [$C116] = [$C664]
+; [rBankANum ($27FF)],            [$C113] = $1E
+; [rBankARomFlashSelect ($2800)], [$C114] = $00
+; call $4000
+; if [$C672] == 0 then:
+;     [rBankANum ($27FF)],            [$C113] = [$FFAB]
+;     [rBankARomFlashSelect ($2800)], [$C114] = [$FFAC]
+;     [rBankBNum ($37FF)],            [$C115] = [$FFAD]
+;     [rBankBRomFlashSelect ($3800)], [$C116] = [$FFAE]
+; else:
+;     [rBankANum ($27FF)] =            [$CB81]
+;     [rBankARomFlashSelect ($2800)] = [$CB82]
+;     [rBankBNum ($37FF)] =            [$CB83]
+;     [rBankBRomFlashSelect ($3800)] = [$CB84]
+; end
+;     
 APIFunction53:: ; 0249
 	jp $2242
 
@@ -850,18 +299,18 @@ APIFunction57:: ; 0255
 	jp $23cc
 	
 ; 
-; 
+; something to do with metasprites i think????
 ; 
 ; 
 ; # items + 4-byte data table
 ;  
 ; 
-; 
+; hl[Sprite?][Frame?][Object][Y,X,T,A]
 ; 
 ; [$C1C5->$C1C6] = hl (little endian)
 ; 
-; @param	hl	pointer to table of pointers to tables of pointers to tables of 4-byte values starting with length byte
-; 				[G010 has table $01,$57, $75,$59, $83,$59, $00]
+; @param	hl	pointer to table of 11(?) pointers to tables of pointers to tables of 4-byte values starting with length byte
+; 				[G010 has table $01,$57, $75,$59, $83,$59, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00]
 				; $5701 - $0F,$57, $84,$57, $ED,$57, $56,$58, $AB,$58, $14,$59, $75,$59, $1D,$00
 				; $570F - $1D, 
 				;         $00, $10, $00, $01, 
@@ -920,12 +369,60 @@ APIFunction57:: ; 0255
 				;         $28, $18, $34, $00, 
 				;         $28, $20, $35, $05, 
 				;         $28, $28, $36, $05
+				; ...
+				;
+				; $5975 - $79,$59,$7E,$59
+				; $5979 - $01,
+				;         $00,$00,$B4,$00
+				; $597E - $01,
+				;         $00,$00,$B5,$00
+				;
+				; $5983 - $87,$59,$B8,$59
+				; $5987 - $0C,
+				;         $00,$00,$98,$02,
+				;         $00,$08,$99,$02,
+				;         $00,$10,$9A,$02,
+				;         $00,$18,$9B,$02,
+				;         $08,$00,$9C,$02,
+				;         $08,$18,$9D,$02,
+				;         $10,$00,$9E,$02,
+				;         $10,$18,$9F,$02,
+				;         $18,$00,$A0,$02,
+				;         $18,$08,$A1,$02,
+				;         $18,$10,$A2,$02,
+				;         $18,$18,$A3,$02,
+				; $59B8 - $10,
+				;         $00,$00,$A4,$02,
+				;         $00,$08,$A5,$02,
+				;         $00,$10,$A6,$02,
+				;         $00,$18,$A7,$02,
+				;         $08,$00,$A8,$02,
+				;         $08,$08,$A9,$02,
+				;         $08,$10,$AA,$02,
+				;         $08,$18,$AB,$02,
+				;         $10,$00,$AC,$02,
+				;         $10,$08,$AD,$02,
+				;         $10,$10,$AE,$02,
+				;         $10,$18,$AF,$02,
+				;         $18,$00,$B0,$02,
+				;         $18,$08,$B1,$02,
+				;         $18,$10,$B2,$02,
+				;         $18,$18,$B3,$02,
+				
+				
+				
+				
+				
 APIFunction58:: ; 0258
 	jp $1186
 	
-	
+; if [$C1C4] >= 16 then return
+; [$C1C4]++
+; [$C1CA + [$C1C4]*4] = edcb
 APIFunction59:: ; 025b
 	jp $118f
+	
+; identical jump ptr to Function59
 APIFunction5A:: ; 025e
 	jp $118f
 	
@@ -933,10 +430,86 @@ APIFunction5A:: ; 025e
 ; 
 ; 
 ; clears Shadow OAM?
-; 
+
+; $C000[0..$A0] = 0
+; if [$C1C4] != 0 then
+;     b = [$C1C4]
+;     [$C1C4] = 0
+;     di
+;     if [$C1C6] < $60 then:
+;         [rBankANum ($27FF)], [$C113] = [$C21C]
+;         [rBankARomFlashSelect ($2800)], [$C114] = [$C21D]
+;     else:
+;         [rBankBNum ($37FF)], [$C115] = [$C21C]
+;         [rBankBRomFlashSelect ($3800)], [$C116] = [$C21D]
+;     end
+;     [$C1C7] = $28
+;     
+;     hl = $C1CA
+;     de = $C000
+;     while(something):
+;         push bc, hl, de
+;         [$C1C8][0..2] = hl++++[0..2]
+;         if [hl] == $FF
+; ...
 APIFunction5B:: ; 0261 
 	jp $11aa
-APIFunction5C:: ; 0264
+	
+; Call Predef?
+
+; hl = $05C8 + (a * 3)
+; if b == 0:
+;     [$C107 + ([$C10E] * 2)][0..2] = [$FFAB][0..2]
+;     [$C10E]++
+;     aed = [hl][0..3]
+;     
+;     di
+;     [rBankANum],    [$FFAB], [$C113] = a
+;     [rBankASelect], [$FFAC], [$C114] = 0
+;     ei
+;     
+;     call de
+;     
+;     [$C10E]--
+;     [$FFAB][0..2] = [$C107 + ([$C10E] * 2)][0..2]
+;     
+;     di
+;     [rBankANum],    [$C113] = [$FFAB]
+;     [rBankASelect], [$C114] = [$FFAC]
+;     ei
+; else:
+;     push hl
+;     [$C10D + ([$C10F] * 2)][0..2] = [$FFAD][0..2]
+;     [$C10F]++
+;     aed = [hl][0..3]
+;     
+;     di
+;     [rBankBNum],    [$FFAD], [$C115] = a
+;     [rBankBSelect], [$FFAE], [$C116] = 0
+;     ei
+;     
+;     call de
+;     
+;     [$C10F]--
+;     [$FFAD][0..2] = [$C10D + ([$C10F] * 2)][0..2]
+;     
+;     di
+;     [rBankBNum],    [$C115] = [$FFAD]
+;     [rBankBSelect], [$C116] = [$FFAE]
+;     ei
+; end
+
+; APIPredef -- 0264
+; 
+; Call predefined function `a` from the table
+; at ROM address 00:05C8.
+; 
+; Functions are defined in include/constants/predef_constants.asm
+; 
+; @param	a	Function to call
+; @param	b	Swap into Bank A if 0, Bank B if nonzero.
+; 				I think this should always be 0?
+APIPredef:: ; 0264
 	jp $23e4
 APIFunction5D:: ; 0267
 	jp $24b8
@@ -949,7 +522,7 @@ APIFunction60:: ; 0270
 APIFunction61:: ; 0273
 	jp $25ef
 	
-; APICopy
+; APICopy -- 0276
 ; 
 ; Copies data from one location to another.
 ; Simple as that!
@@ -971,13 +544,72 @@ APIFunction61:: ; 0273
 APICopy:: ; 0276
 	jp $2613
 	
-APIFunction63:: ; 0279
+; 
+; 
+; [$FF8B]++
+; ; fall thru to APIJoypad
+APIJoypadFrameCount:: ; 0279
 	jp $261c
+; [$FF00] = $20
+; a = [$FF00]
+; a = [$FF00]
+; cpl
+; a &= %0000_1111
+; swap a
+; b = a
+; [$FF00] = $10
+; a = [$FF00]
+; a = [$FF00]
+; a = [$FF00]
+; a = [$FF00]
+; a = [$FF00]
+; a = [$FF00]
+; cpl
+; a &= %0000_1111
+; a |= b
+; c = a
+; [$FF97] = ([$FF96] ^ c) & c ; pressed inputs this frame
+; [$FF96] = c                 ; held inputs this frame
+; 
+; [$FF00] = $30
+; hl = $FF9A
+; 
+; ; if held inputs from last frame that ??? dont match current held inputs minus start and select
+; if [$FF99] != ([$FF96] & %1111_0011)
+; 	[hl] = 0
+; 	[$FF99] = [$FF96] & %1111_0011  ; held inputs this frame minus start and select
+; 	[$FF98] = [$FF97]               ; pressed inputs this frame
+; 	[$FF9B] = 1                     ; return value...?
+; else
+; 	a = ([hl] + 1) & %1001_1111
+; 	if !a
+; 		a = $80
+; 	endif
+; 	if (bit 7, a)
+; 		a &= %0000_0011
+; 		if !a
+; 			[$FF98] = [$FF97] | c    ; pressed | held
+; 			[$FF9B] = 0              ; return value...?
+; 		else
+; 			[$FF98] = [$FF97]   ; pressed
+; 			[$FF9B] = 1         ; return value...?
+; 		endif
+; 	else
+; 		[$FF98] = [$FF97]   ; pressed
+; 		[$FF9B] = 1         ; return value...?
+; 	endif
+; endif
+; 
+; 
 	
-APIFunction64:: ; 027c
+APIJoypad:: ; 027c
 	jp $2620
 APIFunction65:: ; 027f
 	jp $2685
+	
+	
+	
+	
 APIFunction66:: ; 0282
 	jp $1663
 APIFunction67:: ; 0285

@@ -2,7 +2,7 @@ include "include/api.asm"
 include "include/charmap.asm"
 include "include/constants/icon_constants.asm"
 include "include/macros.asm"
-include "include/wram.asm"
+include "include/ram.asm"
 
 ; Affects minigame's primary icon
 ; Accepted values:
@@ -46,6 +46,12 @@ DEF BG_MAP_WIDTH EQU $20
 
 
 MinigameStart:
+
+    call BeginMenu
+    ld a, [$C214]
+    cp $ff
+    ret z
+
 
 ;    call APIClearVRAM
     
@@ -231,13 +237,28 @@ MinigameStart:
     ret ; jp [wCallFunc]
     
 .quit
+    ld a, $10
+    ld [$C671], a
     
     di
     xor a
     ldh [$FF8E], a
     ldh [$FF8F], a
     ldh [$FF07],a
+    
+    ld de, 0
+    call APISetTimer
+    ld de, 0
+    call APISetVBlank
+    ld de, 0
+    call APISetLCDC
+    ld de, 0
+    call APISetSerial
+    
     ei
+    
+    ld a, $FF
+    ld [$C214], a
     ret
 
 DrawCursor:
@@ -266,7 +287,7 @@ DrawCursor:
 PlaceString::
 .placeNext::
     ld a, [de]
-    cp "<NULL>"
+    cp CHARVAL("<NULL>")
     ret z
     ld [hli], a
     inc de
@@ -382,7 +403,40 @@ AddNTimes::
     ret
     
 
-
+BeginMenu::
+    ld a, $FF
+    ld [$D07F], a
+    ld a, 3
+    ld c, a
+    ld hl, .Options
+    call APIDoMenu
+    ld a, [$C214]
+    cp $FF
+    jr z, .backedOut
+    ret
+.backedOut
+    ld a, $10
+    ld [$C671], a
+    
+    di
+    ld de, 0
+    call APISetTimer
+    ld de, 0
+    call APISetVBlank
+    ld de, 0
+    call APISetLCDC
+    ld de, 0
+    call APISetSerial
+    ei
+    
+    ld a, $FF
+    ld [$C214], a
+    ret
+    
+.Options
+    db "Start<NULL>"
+    db "Info<NULL>"
+    db "Wawa<NULL>"
 
 
 MACRO RGB
