@@ -30,8 +30,11 @@ wBankASelectBackup: db ; C114
 wBankBNumBackup:    db ; C115
 wBankBSelectBackup: db ; C116
 
-ds $AD
+ds $A9
 
+wC1C0: dw ; C1C0..1
+wC1C2: db ; C1C2
+wC1C3: db ; C1C3
 wC1C4: db ; C1C4
 wC1C5: dw ; C1C5..6
 wC1C7: db ; C1C7
@@ -53,8 +56,7 @@ wC206: db ; C206
 wC207: db ; C207
 wC208: db ; C208
 wC209: db ; C209
-wC20A: db ; C20A
-wC20B: db ; C20B
+wC20A: dw ; C20A
 wC20C: db ; C20C
 wC20D: db ; C20D
 wC20E: db ; C20E
@@ -68,8 +70,7 @@ wC215: db ; C215
 wC216: db ; C216
 wC217: db ; C217
 wC218: db ; C218
-wC219: db ; C219
-wC21A: db ; C21A
+wC219: dw ; C219
 wC21B: db ; C21B
 wC21C: db ; C21C
 wC21D: db ; C21D
@@ -127,7 +128,7 @@ wGameOverLine1: ds 24 ; C81B
 wGameOverLine2: ds 24 ; C833
 wReactPointReward: db ; C84B
 wSmartPointReward: db ; C84C
-wSensePointReward: db ; C84D
+wTastePointReward: db ; C84D
 wC84E: db ; C84E
 wC84F: db ; C84F
 

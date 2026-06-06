@@ -12,158 +12,170 @@ include "include/header.asm"
 MinigameStart:
 	ld a, 1
 	ld [$d000], a
-	call $4c93
+	call Function4c93
 	ld a, [$c214]
 	cp $ff
 	ret z
-	call $423f
+	call Function423f
 	ld a,$fb
 	ldh [$ff06],a
 	ld a,$04
 	ldh [$ff07],a
-	call $40e1
+.bigLoop
+	call Function40e1
 	ld a, 1
-	call $417b
+	call Function417b
 	ld a, 0
 	ld [$ff4f],a
-	call $41e3
-	call $42aa
+	call Function41e3
+	call Function42aa
 	ld a,$04
-	call $0177
-	call $4c7f
-	call $0252
-	call $0279
-	call $01ec
-	call $0261
-	call $017d
-	call $42b7
+	call APIUnpackAllPalettes
+	call Function4c7f
+	call APIStopAudio
+.loop
+	call APIJoypadFrameCount
+	call APIFunction34
+	call APIFunction5B
+	call APIApplyAllPalettes
+	call Function42b7
 	ld a, [$d000]
 	cp $f0
-	jr z, $0056
+	jr z, .skip1
 	ld a, [$d000]
 	cp $00
-	jr nz, $0063
-	call $4a0b
-	call $0261
-	call $4157
+	jr nz, Function40D2
+	call Function4a0b
+.skip1
+	call APIFunction5B
+	call Function4157
 	xor a
 	ldh [$ff07],a
-	call $4252
+	call Function4252
 	ret 
 
+Function40D2:
 	push af
-	call $430b
+	call Function430b
 	pop af
 	cp $ff
-	jr nz,$0036
-	call $4157
-	jp $4088
+	jr nz, MinigameStart.loop
+	call Function4157
+	jp MinigameStart.bigLoop
+	
+Function40e1:
 	ld a,[$d07f]
 	cp $ff
-	jr nz,$00af
+	jr nz,.skip1
 	ld a,$03
-	call $0240
+	call APIRandomRange
 	ld [$d07f],a
-	call $0252
+	call APIStopAudio
 	ld hl,$6000
 	ld de,$002f
-	call $0246
+	call APILoadSong
 	ld a,$01
 	ld [$d000],a
 	ld hl,$d002
 	ld bc,$0008
+.loop1
 	xor a
 	ld [hli],a
 	dec bc
 	ld a,c
 	or b
-	jr nz,$0098
+	jr nz, .loop1
 	ld hl,$c84b
 	ld bc,$0005
+.loop2
 	xor a
 	ld [hli],a
 	dec bc
 	ld a,c
 	or b
-	jr nz,$00a5
-	call $4466
+	jr nz, .loop2
+	call Function4466
+.skip1
 	ld a,$00
-	ldh [$ff$70],a
+	ldh [$ff70],a
 	ld a,$00
 	ld [$d006],a
 	di 
 	xor a
-	ldh [$ff$4f],a
-	ldh [$ff$70],a
+	ldh [$ff4f],a
+	ldh [$ff70],a
 	ld a,$56
-	ld [$c21c],a
+	ld [wC21C],a
 	ld a,$00
-	ld [$c21d],a
+	ld [wC21D],a
 	ld hl,$5122
-	call $0258
+	call APIFunction58
 	ld de,$0000
-	call $0153
-	ld de,$42e5
-	call $0150
+	call APISetTimer
+	ld de, VBlankRoutine
+	call APISetVBlank
 	ld de,$0000
-	call $0156
+	call APISetLCDC
 	ld de,$0000
-	call $0159
+	call APISetSerial
 	ei 
 	ret 
 
+Function4157:
 	di 
 	ld de,$0000
-	call $0153
+	call APISetTimer
 	ld de,$0000
-	call $0150
+	call APISetVBlank
 	ld de,$0000
-	call $0156
+	call APISetLCDC
 	ld de,$0000
-	call $0159
+	call APISetSerial
 	ei 
 	ret 
 
+Function4172:
 	di 
-	ld de,$42e5
-	call $0150
+	ld de, VBlankRoutine
+	call APISetVBlank
 	ei 
 	ret 
 
+Function417b:
 	push af
-	call $41e3
+	call Function41e3
 	ld a,$00
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	xor a
-	call $0168
+	call APISetLYC
 	di 
 	ld de,$0000
-	call $0156
+	call APISetLCDC
 	ei 
 	xor a
 	ld [$c221],a
 	ld [$c21f],a
 	ld [$c220],a
-	call $4261
+	call Function4261
 	ld a,$57
-	ld [$37ff],a
-	ldh [$ff$ad],a
+	ld [rBankBNum],a
+	ldh [$ffad],a
 	ld a,$00
-	ld [$3800],a
-	ldh [$ff$ae],a
+	ld [rBankBSelect],a
+	ldh [$ffae],a
 	ld a,$00
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	ld hl,$7450
 	ld de,$8000
 	ld bc,$0740
-	call $0198
+	call APICopyVRAM
 	ld a,$01
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	ld hl,$7350
 	ld de,$8b00
 	ld bc,$0100
-	call $0198
-	call $41e3
+	call APICopyVRAM
+	call Function41e3
 	pop af
 	or a
 	ret z
@@ -174,114 +186,126 @@ MinigameStart:
 	jr c,$016e
 	ld de,$6120
 	ld a,$00
-	call $48b9
+	call Function48b9
 	ret 
 
+Function41e3:
 	ld a,[$d07f]
 	cp $03
-	jr nc,$01bb
-	ld hl,$41f1
+	jr nc, Function422a
+	ld hl, .jumptable
 	push hl
-	jp $05f5
-	rst $30
-	ld b,c
-	ld [$1942],sp
-	ld b,d
+	jp $05f5 ; Jumptable
+.jumptable
+	dw Function41F7 ; 41F7
+	dw Function4208 ; 4208
+	dw Function4219 ; 4219
+
+Function41F7:
 	di 
 	ld a,$57
-	ld [$37ff],a
-	ldh [$ff$ad],a
+	ld [rBankBNum],a
+	ldh [$ffad],a
 	ld a,$00
-	ld [$3800],a
-	ldh [$ff$ae],a
+	ld [rBankBSelect],a
+	ldh [$ffae],a
 	ei 
 	ret 
-
+	
+Function4208:
 	di 
 	ld a,$58
-	ld [$37ff],a
-	ldh [$ff$ad],a
+	ld [rBankBNum],a
+	ldh [$ffad],a
 	ld a,$00
-	ld [$3800],a
-	ldh [$ff$ae],a
+	ld [rBankBSelect],a
+	ldh [$ffae],a
 	ei 
 	ret 
 
+Function4219:
 	di 
 	ld a,$59
-	ld [$37ff],a
-	ldh [$ff$ad],a
+	ld [rBankBNum],a
+	ldh [$ffad],a
 	ld a,$00
-	ld [$3800],a
-	ldh [$ff$ae],a
+	ld [rBankBSelect],a
+	ldh [$ffae],a
 	ei 
 	ret 
 
+Function422a:
 	ld a,[$d9b7]
-	call $02ac
+	call APIFunction74
 	di 
 	ld a,e
-	ld [$37ff],a
-	ldh [$ff$ad],a
+	ld [rBankBNum],a
+	ldh [$ffad],a
 	ld a,d
-	ld [$3800],a
-	ldh [$ff$ae],a
+	ld [rBankBSelect],a
+	ldh [$ffae],a
 	ei 
 	ret 
 
+Function423f:
 	push af
 	ld a,[$d07f]
 	cp $03
-	jr c,$01e1
+	jr c, .return
 	cp $ff
-	jr z,$01e1
+	jr z, .return
 	push hl
 	call $1362
 	pop hl
+.return
 	pop af
 	ret 
 
+Function4252:
 	push af
 	ld a,[$d07f]
 	cp $03
-	jr c,$01f0
+	jr c, .return
 	push hl
 	call $1359
 	pop hl
+.return
 	pop af
 	ret 
 
+Function4261:
 	ld a,[$d07f]
 	cp $03
-	jr nc,$021a
+	jr nc, .skip1
 	ld a,$00
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	ld hl,$6350
 	ld de,$8800
 	ld bc,$1000
-	call $0198
+	call APICopyVRAM
 	ld a,$01
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	ld hl,$7350
 	ld de,$8800
 	ld bc,$0800
-	call $0198
+	call APICopyVRAM
 	ret 
-
+.skip1
 	ld a,$00
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	ld hl,$63f0
 	ld de,$8800
 	ld bc,$1000
-	call $0198
+	call APICopyVRAM
 	ld a,$01
-	ldh [$ff$4f],a
+	ldh [$ff4f],a
 	ld hl,$73f0
 	ld de,$8800
 	ld bc,$0800
-	call $0198
+	call APICopyVRAM
 	ret 
 
+Function42aa:
 	ld hl,$6000
 	ld a,[$d07f]
 	cp $03
@@ -289,429 +313,450 @@ MinigameStart:
 
 	ld hl,$60a0
 	ret 
-
+	
+Function42b7:
 	ld a,[$c220]
 	or a
-	jr nz,$025b
+	jr nz, .skip1
 	ld a,[$d006]
 	cp $01
-	jr nz,$025b
+	jr nz, .skip1
 	ld a,$00
 	ld [$d000],a
 	ret 
-
+.skip1
 	ld a,[$d001]
 	inc a
 	ld [$d001],a
 	ld a,[$d000]
-	ld hl,$42db
+	ld hl, .jumptable
+	push hl
+	jp Jumptable
+	
+.jumptable
+	dw 0
+	dw Function4316
+	dw Function4365
+	dw Function43ec
+	
+Function42e3:
+	ld a,$44
+VBlankRoutine:
+	call APIOAMDMA
+	call APIUpdatePalettesVBlank
+	call Function49e1
+	ld a,[$d000]
+	cp $03
+	ret nz
+
+	ld a,[$d080]
+	inc a
+	ld [$d080],a
+	cp $05
+	jr c, .skip1
+	ld a,$00
+	ld [$d080],a
+.skip1
+	and $01
+	ret nz
+
+	call Function49e1
+	ret 
+
+Function430b:
+	halt 
+	nop 
+.loop
+	ld a,[$ff8a]
+	and a
+	jr z, .loop
+	xor a
+	ld [$ff8a],a
+	ret 
+
+Function4316:
+	ld a,$81
+	ld [$cf80],a
+	ld [$c66b],a
+	ld [$c665],a
+	ld a,[$002f]
+	ld [$c666],a
+	ld a,[$0030]
+	ld [$c667],a
+	call Function48dc
+	ld a,[$ff8b]
+	and $1f
+	cp $0f
+	jr nc,.skip1
+	ld b,$01
+	ld c,$05
+	ld d,$30
+	ld e,$90
+	call Function4f50
+.skip1
+	ld a,[$ff97]
+	and $01
+	ret z
+
+	ld a,$00
+	call Function4957
+	ld a,$00
+	ld de,$505a
+	call Function48b9
+	ld a,$02
+	ld [$d000],a
+	ld a,$00
+	call Function4933
+	ld a,$81
+	call APISilenceAudio
+	ret 
+
+Function4365:
+	ld a,$81
+	ld [$cf80],a
+	ld [$c66b],a
+	ld [$c665],a
+	ld a,[$002f]
+	ld [$c666],a
+	ld a,[$0030]
+	ld [$c667],a
+	ld a,[$d018]
+	or a
+	jr z, .loop
+	call Function45a0
+	ld a,$00
+	ld [$d018],a
+	jr .almostReturn
+.loop
+	ld a,[$d001]
+	and $0d
+	jr nz, .skip2
+	ld a,$01
+	jr .noRandom
+.skip2
+	ld a,[$d001]
+	and $0e
+	jr nz,.doRandom
+	ld a,$03
+	jr .noRandom
+.doRandom
+	ld a,$04
+	call APIRandomRange
+.noRandom
+	push af
+	ld b,a
+	ld a,[$d019]
+	ld c,a
+	ld a,b
+	srl a
+	ld d,a
+	ld a,c
+	srl a
+	cp d
+	jr z, .skip3
+	pop af
+	ld [$d019],a
+	call Function452c
+	jr .almostReturn
+.skip3
+	pop af
+	ld a,[$d010]
+	dec a
+	ld [$d010],a
+	cp $02
+	jr nz,.skip4
+	ld a,$82
+	call APISilenceAudio
+	jr .almostReturn
+.skip4
+	or a
+	jr nz,.almostReturn
+	ld a,[$d01b]
+	call Function46fb
+	ld a,$03
+	ld [$d000],a
+	ld a,$81
+	call APIPlaySong
+	jr .loop
+.almostReturn
+	call Function48dc
+	ret 
+
+Function43ec:
+	ld a,[$d018]
+	or a
+	jr z,$03b1
+	call Function45a0
+	call Function47be
+	ld a,[$d001]
+	and $01
+	jr nz,$03c5
+	ld a,[$d018]
+	dec a
+	ld [$d018],a
+	cp $00
+	jr nz,$03c5
+	call Function44db
+	cp $01
+	jr nz,$03c5
+	ld a,$04
+	ld [$d000],a
+	jr nz,$03c5
+	ld a,$00
+	ld de,$505a
+	call Function48b9
+	call Function4755
+	call Function44f8
+	ld a,[$d001]
+	srl a
+	srl a
+	srl a
+	and $01
+	ld [$d01d],a
+	ld a,[$d000]
+	cp $ff
+	ret z
+
+	call Function497b
+	ret 
+
+	ld a,[$d001]
+	srl a
+	srl a
+	srl a
+	and $01
+	ld [$d01d],a
+	call Function47cf
+	call Function48dc
+	ld a,[$d01a]
+	dec a
+	ld [$d01a],a
+	or a
+	ret nz
+
+	ld a,$01
+	call Function4957
+	ld a,$00
+	ld [$d000],a
+	ret 
+
+	ld a,$01
+	ld [$d000],a
+	ld a,$17
+	ld [$d01b],a
+	ld a,$00
+	ld [$d016],a
+	ld a,$00
+	ld [$d017],a
+	ld a,$00
+	ld [$d018],a
+	ld a,$00
+	ld [$d015],a
+	ld a,$00
+	ld [$d019],a
+	ld a,$00
+	ld [$d01d],a
+	ld a,$40
+	ld [$d010],a
+	ld a,$80
+	ld [$d01a],a
+	ld a,$00
+	ld [$d080],a
+	ld hl,$d008
+	ld bc,$0008
+	xor a
+	ld [hli],a
+	dec bc
+	ld a,c
+	or b
+	jr nz,$0434
+	ld hl,$d002
+	ld bc,$0008
+	xor a
+	ld [hli],a
+	dec bc
+	ld a,c
+	or b
+	jr nz,$0441
+	ld d,$00
+	ld a,$02
+	ld c,a
+	ld a,d
+	call $022b
+	ld [$d011],a
+	ld a,[$d011]
+	add a,$1f
+	ld l,a
+	ld a,$d0
+	adc a,$00
+	ld h,a
+	ld a,[hl]
+	ld a,d
+	ld [hl],a
+	inc hl
+	ld a,d
+	ld [hl],a
+	inc d
+	ld a,d
+	cp $18
+	jr c,$044a
+	ret 
+
+	ld a,$16
+	ld hl,$d01f
+	cp $ff
+	jr z,$0486
+	push af
+	ld a,[hl]
+	ld b,a
+	inc hl
+	ld a,[hl]
+	inc hl
+	cp b
+	jr z,$0482
+	pop af
+	ld a,$00
+	ret 
+
+	pop af
+	dec a
+	jr $0471
+	ld a,$01
+	ret 
+
+	ld a,[$ff98]
+	and $10
+	jr z,$0495
+	ld a,$00
+	call Function452c
+	ret 
+
+	ld a,[$ff98]
+	and $20
+	jr z,$04a1
+	ld a,$01
+	call Function452c
+	ret 
+
+	ld a,[$ff98]
+	and $80
+	jr z,$04ad
+	ld a,$02
+	call Function452c
+	ret 
+
+	ld a,[$ff98]
+	and $40
+	jr z,$04b9
+	ld a,$03
+	call Function452c
+	ret 
+
+	call Function48dc
+	ret 
+
+	ld hl,$4533
 	push hl
 	jp $05f5
 	
-	db $00, $00, $16, $43, $65, $43, $EC, $43
-	
-	ld      a,$44
-	call    $ff80
-	call    $018c
-	call    $49e1
-	ld      a,($d000)
-	cp      $03
-	ret     nz
-
-	ld      a,($d080)
-	inc     a
-	ld      ($d080),a
-	cp      $05
-	jr      c,$0295
-	ld      a,$00
-	ld      ($d080),a
-	and     $01
-	ret     nz
-
-	call    $49e1
-	ret     
-
-	halt    
-	nop     
-	ld      a,($ff00+$8a)
-	and     a
-	jr      z,$029e
-	xor     a
-	ld      ($ff00+$8a),a
-	ret     
-
-	ld      a,$81
-	ld      ($cf80),a
-	ld      ($c66b),a
-	ld      ($c665),a
-	ld      a,($002f)
-	ld      ($c666),a
-	ld      a,($0030)
-	ld      ($c667),a
-	call    $48dc
-	ld      a,($ff00+$8b)
-	and     $1f
-	cp      $0f
-	jr      nc,$02d4
-	ld      b,$01
-	ld      c,$05
-	ld      d,$30
-	ld      e,$90
-	call    $4f50
-	ld      a,($ff00+$97)
-	and     $01
-	ret     z
-
-	ld      a,$00
-	call    $4957
-	ld      a,$00
-	ld      de,$505a
-	call    $48b9
-	ld      a,$02
-	ld      ($d000),a
-	ld      a,$00
-	call    $4933
-	ld      a,$81
-	call    $024f
-	ret     
-
-	ld      a,$81
-	ld      ($cf80),a
-	ld      ($c66b),a
-	ld      ($c665),a
-	ld      a,($002f)
-	ld      ($c666),a
-	ld      a,($0030)
-	ld      ($c667),a
-	ld      a,($d018)
-	or      a
-	jr      z,$031d
-	call    $45a0
-	ld      a,$00
-	ld      ($d018),a
-	jr      $0379
-	ld      a,($d001)
-	and     $0d
-	jr      nz,$0328
-	ld      a,$01
-	jr      $0338
-	ld      a,($d001)
-	and     $0e
-	jr      nz,$0333
-	ld      a,$03
-	jr      $0338
-	ld      a,$04
-	call    $0240
-	push    af
-	ld      b,a
-	ld      a,($d019)
-	ld      c,a
-	ld      a,b
-	srl     a
-	ld      d,a
-	ld      a,c
-	srl     a
-	cp      d
-	jr      z,$0351
-	pop     af
-	ld      ($d019),a
-	call    $452c
-	jr      $0379
-	pop     af
-	ld      a,($d010)
-	dec     a
-	ld      ($d010),a
-	cp      $02
-	jr      nz,$0364
-	ld      a,$82
-	call    $024f
-	jr      $0379
-	or      a
-	jr      nz,$0379
-	ld      a,($d01b)
-	call    $46fb
-	ld      a,$03
-	ld      ($d000),a
-	ld      a,$81
-	call    $024c
-	jr      $031d
-	call    $48dc
-	ret     
-
-	ld      a,($d018)
-	or      a
-	jr      z,$03b1
-	call    $45a0
-	call    $47be
-	ld      a,($d001)
-	and     $01
-	jr      nz,$03c5
-	ld      a,($d018)
-	dec     a
-	ld      ($d018),a
-	cp      $00
-	jr      nz,$03c5
-	call    $44db
-	cp      $01
-	jr      nz,$03c5
-	ld      a,$04
-	ld      ($d000),a
-	jr      nz,$03c5
-	ld      a,$00
-	ld      de,$505a
-	call    $48b9
-	call    $4755
-	call    $44f8
-	ld      a,($d001)
-	srl     a
-	srl     a
-	srl     a
-	and     $01
-	ld      ($d01d),a
-	ld      a,($d000)
-	cp      $ff
-	ret     z
-
-	call    $497b
-	ret     
-
-	ld      a,($d001)
-	srl     a
-	srl     a
-	srl     a
-	and     $01
-	ld      ($d01d),a
-	call    $47cf
-	call    $48dc
-	ld      a,($d01a)
-	dec     a
-	ld      ($d01a),a
-	or      a
-	ret     nz
-
-	ld      a,$01
-	call    $4957
-	ld      a,$00
-	ld      ($d000),a
-	ret     
-
-	ld      a,$01
-	ld      ($d000),a
-	ld      a,$17
-	ld      ($d01b),a
-	ld      a,$00
-	ld      ($d016),a
-	ld      a,$00
-	ld      ($d017),a
-	ld      a,$00
-	ld      ($d018),a
-	ld      a,$00
-	ld      ($d015),a
-	ld      a,$00
-	ld      ($d019),a
-	ld      a,$00
-	ld      ($d01d),a
-	ld      a,$40
-	ld      ($d010),a
-	ld      a,$80
-	ld      ($d01a),a
-	ld      a,$00
-	ld      ($d080),a
-	ld      hl,$d008
-	ld      bc,$0008
-	xor     a
-	ld      (hli),a
-	dec     bc
-	ld      a,c
-	or      b
-	jr      nz,$0434
-	ld      hl,$d002
-	ld      bc,$0008
-	xor     a
-	ld      (hli),a
-	dec     bc
-	ld      a,c
-	or      b
-	jr      nz,$0441
-	ld      d,$00
-	ld      a,$02
-	ld      c,a
-	ld      a,d
-	call    $022b
-	ld      ($d011),a
-	ld      a,($d011)
-	add     a,$1f
-	ld      l,a
-	ld      a,$d0
-	adc     a,$00
-	ld      h,a
-	ld      a,(hl)
-	ld      a,d
-	ld      (hl),a
-	inc     hl
-	ld      a,d
-	ld      (hl),a
-	inc     d
-	ld      a,d
-	cp      $18
-	jr      c,$044a
-	ret     
-
-	ld      a,$16
-	ld      hl,$d01f
-	cp      $ff
-	jr      z,$0486
-	push    af
-	ld      a,(hl)
-	ld      b,a
-	inc     hl
-	ld      a,(hl)
-	inc     hl
-	cp      b
-	jr      z,$0482
-	pop     af
-	ld      a,$00
-	ret     
-
-	pop     af
-	dec     a
-	jr      $0471
-	ld      a,$01
-	ret     
-
-	ld      a,($ff00+$98)
-	and     $10
-	jr      z,$0495
-	ld      a,$00
-	call    $452c
-	ret     
-
-	ld      a,($ff00+$98)
-	and     $20
-	jr      z,$04a1
-	ld      a,$01
-	call    $452c
-	ret     
-
-	ld      a,($ff00+$98)
-	and     $80
-	jr      z,$04ad
-	ld      a,$02
-	call    $452c
-	ret     
-
-	ld      a,($ff00+$98)
-	and     $40
-	jr      z,$04b9
-	ld      a,$03
-	call    $452c
-	ret     
-
-	call    $48dc
-	ret     
-
-	ld      hl,$4533
-	push    hl
-	jp      $05f5
-	
 	db $3B, $45, $51, $45, $67, $45, $7D, $45
 	
-	call    $4593
-	cp      $05
-	ret     z
+	call Function4593
+	cp $05
+	ret z
 
-	ld      a,$04
-	ld      ($d018),a
-	ld      a,$00
-	ld      ($d015),a
-	ld      a,$01
-	call    $463e
-	ret     
+	ld a,$04
+	ld [$d018],a
+	ld a,$00
+	ld [$d015],a
+	ld a,$01
+	call Function463e
+	ret 
 
-	call    $4593
-	cp      $00
-	ret     z
+	call Function4593
+	cp $00
+	ret z
 
-	ld      a,$04
-	ld      ($d018),a
-	ld      a,$01
-	ld      ($d015),a
-	ld      a,$ff
-	call    $463e
-	ret     
+	ld a,$04
+	ld [$d018],a
+	ld a,$01
+	ld [$d015],a
+	ld a,$ff
+	call Function463e
+	ret 
 
-	ld      a,($d01b)
-	cp      $12
-	ret     nc
+	ld a,[$d01b]
+	cp $12
+	ret nc
 
-	ld      a,$05
-	ld      ($d018),a
-	ld      a,$02
-	ld      ($d015),a
-	ld      a,$06
-	call    $463e
-	ret     
+	ld a,$05
+	ld [$d018],a
+	ld a,$02
+	ld [$d015],a
+	ld a,$06
+	call Function463e
+	ret 
 
-	ld      a,($d01b)
-	cp      $06
-	ret     c
+	ld a,[$d01b]
+	cp $06
+	ret c
 
-	ld      a,$05
-	ld      ($d018),a
-	ld      a,$03
-	ld      ($d015),a
-	ld      a,$fa
-	call    $463e
-	ret     
+	ld a,$05
+	ld [$d018],a
+	ld a,$03
+	ld [$d015],a
+	ld a,$fa
+	call Function463e
+	ret 
 
-	ld      a,$06
-	ld      c,a
-	ld      a,($d01b)
-	push    de
-	call    $0234
-	pop     de
-	ld      h,a
-	ret     
+	ld a,$06
+	ld c,a
+	ld a,[$d01b]
+	push de
+	call $0234
+	pop de
+	ld h,a
+	ret 
 
-	push    af
-	ld      a,($d01b)
-	call    $46fb
-	pop     af
-	ld      a,$02
-	ld      c,a
-	ld      a,($d01c)
-	call    $022b
-	ld      ($d011),a
-	ld      a,($d011)
-	add     a,$1f
-	ld      l,a
-	ld      a,$d0
-	adc     a,$00
-	ld      h,a
-	ld      a,(hl)
-	call    $461a
-	push    hl
-	ld      a,($d011)
-	add     a,$20
-	ld      l,a
-	ld      a,$d0
-	adc     a,$00
-	ld      h,a
-	ld      a,(hl)
-	call    $473c
-	ld      a,($d015)
-	call    $45e2
-	pop     hl
-	ld      b,$03
-	ld      c,$04
-	call    $4f1e
-	ret     
+	push af
+	ld a,[$d01b]
+	call Function46fb
+	pop af
+	ld a,$02
+	ld c,a
+	ld a,[$d01c]
+	call $022b
+	ld [$d011],a
+	ld a,[$d011]
+	add a,$1f
+	ld l,a
+	ld a,$d0
+	adc a,$00
+	ld h,a
+	ld a,[hl]
+	call Function461a
+	push hl
+	ld a,[$d011]
+	add a,$20
+	ld l,a
+	ld a,$d0
+	adc a,$00
+	ld h,a
+	ld a,[hl]
+	call Function473c
+	ld a,[$d015]
+	call Function45e2
+	pop hl
+	ld b,$03
+	ld c,$04
+	call Function4f1e
+	ret 
 
-	push    de
-	pop     bc
-	ld      hl,$45eb
-	push    hl
-	jp      $05f5
+	push de
+	pop bc
+	ld hl,$45eb
+	push hl
+	jp $05f5
 	
 	db $F3, $45, $FB, $45, $05, $46, $0D, $46
 	

@@ -66,8 +66,8 @@ ResetInterrupts:
     ei
     ret
 	
-MenuStallLoop:
-	call APIFunction57
+FadeOut:
+	call APIFadeAudio
 .loop
 	ld a, [wPalPackScale]
 	ld c, a
@@ -162,7 +162,7 @@ PrepareGameOver:
 ;	ld a, 0
 ;	ld [wReactPointReward], a
 ;	ld a, 0
-;	ld [wSensePointReward], a
+;	ld [wTastePointReward], a
 ;	ld a, [$D00D]
 ;	or a
 ;	jr z, .skip1
@@ -184,7 +184,7 @@ PrepareGameOver:
 	;srl a
 ;	ld [wReactPointReward], a ; reaction point reward
 	;srl a
-;	ld [wSensePointReward], a ; sense point reward
+;	ld [wTastePointReward], a ; taste point reward
 	;call Function5012
 	
 	
@@ -194,7 +194,7 @@ PrepareGameOver:
 	ld a, 37
 	ld [wSmartPointReward], a ; smarts point reward
 	ld a, 69
-	ld [wSensePointReward], a ; sense point reward
+	ld [wTastePointReward], a ; taste point reward
 	
 	ret
 .string1
@@ -260,10 +260,8 @@ Function5012:
 	ret
 	
 GameInfo:
-	;ld a, $0
 	ldh a, [$FFAB]
 	ldh [$FF9D], a ; Bank B Num
-	;ld a, 8
 	ldh a, [$FFAC]
 	ldh [$FF9E], a ; Bank B Rom/Flash Select
 	
@@ -291,7 +289,7 @@ BeginMenu:
     push hl
     jp $05F5 ; Jumptable
 .Start
-    call MenuStallLoop
+    call FadeOut
     ret
 .backedOut
     ld a, $10

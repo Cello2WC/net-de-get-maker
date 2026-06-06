@@ -27,3 +27,14 @@ MACRO game_description
 	warnstrcharsize \1, 31, "Game description \1 is longer than 31 bytes."
 	DEF GAME_DESCR EQUS \1
 ENDM
+
+MACRO lang
+IF DEF(_LANG_\1)
+SHIFT
+	\#
+ENDC
+ENDM
+
+MACRO text
+	db \#, "<NULL>"
+ENDM

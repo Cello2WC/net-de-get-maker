@@ -2,3 +2,4 @@ bin
 main.o
 raw
 bk
+/__pycache__

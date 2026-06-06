@@ -6,7 +6,8 @@ RGBASM  ?= $(RGBDS)rgbasm
 RGBLINK ?= $(RGBDS)rgblink
 
 all: 
-	$(RGBASM) main.asm -o main.o
+	# TODO: way to declare which languages your game supports
+	$(RGBASM) main.asm -o main.o -D _LANG_E
 	$(RGBLINK) main.o -o bin/game.bin
 	python3 ./fix.py game.bin
 	

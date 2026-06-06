@@ -1,6 +1,10 @@
 import struct
 import subprocess
 import argparse
+import mysql.connector
+import bmvj_compress
+
+
 
 parser = argparse.ArgumentParser(
                     prog='push.py',
@@ -12,10 +16,24 @@ parser.add_argument('dbpass')             # positional argument
 
 args = parser.parse_args()
 
+db = mysql.connector.connect(
+  host="localhost",
+  user=args.dbuser,
+  password=args.dbpass,
+  database="db"
+)
 
 game_binary = ""
 with open("bin/%s" % args.filename, "rb") as game_bin:
 	game_binary = game_bin.read()
+	
+cursor = db.cursor()
+cursor.execute("INSERT INTO bmvj_games VALUES(NULL, 0, 0, 0, 0, 0, \"\", \"\", 0, \"\")")
+db.commit()
+
+game_id = cursor.lastrowid
+# insert game ID into binary
+game_binary = game_binary[:10] + str.encode(f"{game_id:03d}") + game_binary[13:]
 
 genre = game_binary[7]
 with open("bin/%s.title" % args.filename, "wb") as title:
@@ -24,16 +42,20 @@ with open("bin/%s.title" % args.filename, "wb") as title:
 with open("bin/%s.description" % args.filename, "wb") as description:
 	d = game_binary[36:68]
 	description.write(d[:d.find(b"\x00")])
+with open("bin/%s.compressed" % args.filename, "wb") as compressed:
+	compressed.write(bmvj_compress.bmvj_compress(game_binary))
 	
-subprocess.run(["cp", "./bin/%s" % args.filename, "/var/lib/mysql/tmp/"])
+subprocess.run(["cp", "./bin/%s.compressed" % args.filename, "/var/lib/mysql/tmp/"])
 subprocess.run(["cp", "./bin/%s.title" % args.filename, "/var/lib/mysql/tmp/"])
 subprocess.run(["cp", "./bin/%s.description" % args.filename, "/var/lib/mysql/tmp/"])
 
-# get these from elsewhere i guess...?
+# TODO: get these from elsewhere i guess...?
 level_react = 0
 level_smart = 0
 level_sense = 0
 level_hidden = 0
 price = 0
 
-subprocess.run(["mysql", "-u", args.dbuser, "--password=%s" % args.dbpass, "-e", "INSERT INTO bmvj_games VALUES(0, %d, %d, %d, %d, %d, LOAD_FILE('/var/lib/mysql/tmp/%s.title'), LOAD_FILE('/var/lib/mysql/tmp/%s.description'), %d, LOAD_FILE('/var/lib/mysql/tmp/%s'));" % (genre, level_react, level_smart, level_sense, level_hidden, args.filename, args.filename, price, args.filename), "db"])
+cursor.execute("UPDATE bmvj_games SET genre=%s,level_react=%s,level_smart=%s,level_sense=%s,level_hidden=%s,title=LOAD_FILE(%s),description=LOAD_FILE(%s),price=%s,game_binary=LOAD_FILE(%s) WHERE id = %s", 
+(genre, level_react, level_smart, level_sense, level_hidden, f'/var/lib/mysql/tmp/{args.filename}.title', f'/var/lib/mysql/tmp/{args.filename}.description', price, f'/var/lib/mysql/tmp/{args.filename}.compressed', game_id))
+db.commit()

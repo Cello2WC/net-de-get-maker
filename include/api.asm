@@ -226,7 +226,25 @@ APIFunction45:: ; 021f
 ; pop bc
 ; pop af
 ; ret
-APIFunction46:: ; 0222
+
+; APIPopReturn -- 0222
+; 
+; Pops all registers and returns.
+; You probably want to `jp` to this!
+; 
+; Registers are popped in the order of hl, de, bc, af.
+; So, to use this, you'd want to start your function with:
+; ```
+; push af
+; push bc
+; push de
+; push hl
+; ```
+; and end it with:
+; ```
+; jp APIPopReturn
+; ```
+APIPopReturn:: ; 0222
 	jp $3185
 
 
@@ -248,16 +266,16 @@ include "include/api/math.asm"
 APILoadSong::
 	jp $21d7
 
-; [rBankBNum ($37FF)],            [$C115] = [$C663]
-; [rBankBRomFlashSelect ($3800)], [$C116] = [$C664]
-; [rBankANum ($27FF)],            [$C113] = $1E
-; [rBankARomFlashSelect ($2800)], [$C114] = $00
+; [rBankBNum ($37FF)],            [wBankBNumBackup]    = [$C663]
+; [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$C664]
+; [rBankANum ($27FF)],            [wBankANumBackup]    = $1E
+; [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = $00
 ; call $4000
 ; if [$C672] == 0 then:
-;     [rBankANum ($27FF)],            [$C113] = [$FFAB]
-;     [rBankARomFlashSelect ($2800)], [$C114] = [$FFAC]
-;     [rBankBNum ($37FF)],            [$C115] = [$FFAD]
-;     [rBankBRomFlashSelect ($3800)], [$C116] = [$FFAE]
+;     [rBankANum ($27FF)],            [wBankANumBackup]    = [$FFAB]
+;     [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = [$FFAC]
+;     [rBankBNum ($37FF)],            [wBankBNumBackup]    = [$FFAD]
+;     [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$FFAE]
 ; else:
 ;     [rBankANum ($27FF)] =            [$CB81]
 ;     [rBankARomFlashSelect ($2800)] = [$CB82]
@@ -265,6 +283,8 @@ APILoadSong::
 ;     [rBankBRomFlashSelect ($3800)] = [$CB84]
 ; end
 ;     
+
+; well this sure does SOMETHING to the music!
 APIFunction53:: ; 0249
 	jp $2242
 
@@ -295,7 +315,11 @@ APIStopAudio::
 	jp $235f
 	
 	
-APIFunction57:: ; 0255
+; APIFadeAudio -- 0255
+; 
+; Fades audio to silence,
+; over the course of about a second.
+APIFadeAudio:: ; 0255
 	jp $23cc
 	
 ; 
@@ -437,11 +461,11 @@ APIFunction5A:: ; 025e
 ;     [$C1C4] = 0
 ;     di
 ;     if [$C1C6] < $60 then:
-;         [rBankANum ($27FF)], [$C113] = [$C21C]
-;         [rBankARomFlashSelect ($2800)], [$C114] = [$C21D]
+;         [rBankANum ($27FF)], [wBankANumBackup] = [$C21C]
+;         [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = [$C21D]
 ;     else:
-;         [rBankBNum ($37FF)], [$C115] = [$C21C]
-;         [rBankBRomFlashSelect ($3800)], [$C116] = [$C21D]
+;         [rBankBNum ($37FF)], [wBankBNumBackup] = [$C21C]
+;         [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$C21D]
 ;     end
 ;     [$C1C7] = $28
 ;     
@@ -464,8 +488,8 @@ APIFunction5B:: ; 0261
 ;     aed = [hl][0..3]
 ;     
 ;     di
-;     [rBankANum],    [$FFAB], [$C113] = a
-;     [rBankASelect], [$FFAC], [$C114] = 0
+;     [rBankANum],    [$FFAB], [wBankANumBackup] = a
+;     [rBankASelect], [$FFAC], [wBankASelectBackup] = 0
 ;     ei
 ;     
 ;     call de
@@ -474,8 +498,8 @@ APIFunction5B:: ; 0261
 ;     [$FFAB][0..2] = [$C107 + ([$C10E] * 2)][0..2]
 ;     
 ;     di
-;     [rBankANum],    [$C113] = [$FFAB]
-;     [rBankASelect], [$C114] = [$FFAC]
+;     [rBankANum],    [wBankANumBackup] = [$FFAB]
+;     [rBankASelect], [wBankASelectBackup] = [$FFAC]
 ;     ei
 ; else:
 ;     push hl
@@ -484,8 +508,8 @@ APIFunction5B:: ; 0261
 ;     aed = [hl][0..3]
 ;     
 ;     di
-;     [rBankBNum],    [$FFAD], [$C115] = a
-;     [rBankBSelect], [$FFAE], [$C116] = 0
+;     [rBankBNum],    [$FFAD], [wBankBNumBackup] = a
+;     [rBankBSelect], [$FFAE], [wBankBSelectBackup] = 0
 ;     ei
 ;     
 ;     call de
@@ -494,8 +518,8 @@ APIFunction5B:: ; 0261
 ;     [$FFAD][0..2] = [$C10D + ([$C10F] * 2)][0..2]
 ;     
 ;     di
-;     [rBankBNum],    [$C115] = [$FFAD]
-;     [rBankBSelect], [$C116] = [$FFAE]
+;     [rBankBNum],    [wBankBNumBackup] = [$FFAD]
+;     [rBankBSelect], [wBankBSelectBackup] = [$FFAE]
 ;     ei
 ; end
 
