@@ -485,26 +485,27 @@ Function4365:
 Function43ec:
 	ld a,[$d018]
 	or a
-	jr z,$03b1
+	jr z, .skip1
 	call Function45a0
 	call Function47be
 	ld a,[$d001]
 	and $01
-	jr nz,$03c5
+	jr nz, .skip2
 	ld a,[$d018]
 	dec a
 	ld [$d018],a
 	cp $00
-	jr nz,$03c5
+	jr nz, .skip2
 	call Function44db
 	cp $01
-	jr nz,$03c5
+	jr nz, .skip2
 	ld a,$04
 	ld [$d000],a
-	jr nz,$03c5
+	jr nz, .skip2
 	ld a,$00
 	ld de,$505a
 	call Function48b9
+.skip1
 	call Function4755
 	call Function44f8
 	ld a,[$d001]
@@ -513,6 +514,7 @@ Function43ec:
 	srl a
 	and $01
 	ld [$d01d],a
+.skip2
 	ld a,[$d000]
 	cp $ff
 	ret z
@@ -520,6 +522,7 @@ Function43ec:
 	call Function497b
 	ret 
 
+Function443e: ; unreferenced?? maybe??
 	ld a,[$d001]
 	srl a
 	srl a
@@ -539,7 +542,8 @@ Function43ec:
 	ld a,$00
 	ld [$d000],a
 	ret 
-
+	
+Function4466:
 	ld a,$01
 	ld [$d000],a
 	ld a,$17
@@ -562,27 +566,33 @@ Function43ec:
 	ld [$d01a],a
 	ld a,$00
 	ld [$d080],a
+	
 	ld hl,$d008
 	ld bc,$0008
+.loop1
 	xor a
 	ld [hli],a
 	dec bc
 	ld a,c
 	or b
-	jr nz,$0434
+	jr nz, .loop1
+	
 	ld hl,$d002
 	ld bc,$0008
+.loop2
 	xor a
 	ld [hli],a
 	dec bc
 	ld a,c
 	or b
-	jr nz,$0441
+	jr nz, .loop2
+	
 	ld d,$00
+.bigloop
 	ld a,$02
 	ld c,a
 	ld a,d
-	call $022b
+	call APISmallMultiply
 	ld [$d011],a
 	ld a,[$d011]
 	add a,$1f
@@ -599,13 +609,14 @@ Function43ec:
 	inc d
 	ld a,d
 	cp $18
-	jr c,$044a
+	jr c, .bigloop
 	ret 
 
+Function44db:
 	ld a,$16
 	ld hl,$d01f
 	cp $ff
-	jr z,$0486
+	jr z, .skip1
 	push af
 	ld a,[hl]
 	ld b,a
@@ -613,54 +624,61 @@ Function43ec:
 	ld a,[hl]
 	inc hl
 	cp b
-	jr z,$0482
+	jr z, .skip2
 	pop af
 	ld a,$00
 	ret 
-
+.skip2
 	pop af
 	dec a
 	jr $0471
+.skip1
 	ld a,$01
 	ret 
 
+Function44f8:
 	ld a,[$ff98]
 	and $10
-	jr z,$0495
+	jr z, .skip1
 	ld a,$00
 	call Function452c
 	ret 
-
+.skip1
 	ld a,[$ff98]
 	and $20
-	jr z,$04a1
+	jr z, .skip2
 	ld a,$01
 	call Function452c
 	ret 
-
+.skip2
 	ld a,[$ff98]
 	and $80
-	jr z,$04ad
+	jr z, .skip3
 	ld a,$02
 	call Function452c
 	ret 
-
+.skip3
 	ld a,[$ff98]
 	and $40
-	jr z,$04b9
+	jr z, .skip4
 	ld a,$03
 	call Function452c
 	ret 
-
+.skip4
 	call Function48dc
 	ret 
 
-	ld hl,$4533
+Function452c:
+	ld hl,.jumptable
 	push hl
-	jp $05f5
+	jp Jumptable
+.jumptable
+	dw Function453b
+	dw Function4551
+	dw Function4567
+	dw Function457d
 	
-	db $3B, $45, $51, $45, $67, $45, $7D, $45
-	
+Function453b:
 	call Function4593
 	cp $05
 	ret z
@@ -673,6 +691,7 @@ Function43ec:
 	call Function463e
 	ret 
 
+Function4551:
 	call Function4593
 	cp $00
 	ret z
@@ -685,6 +704,7 @@ Function43ec:
 	call Function463e
 	ret 
 
+Function4567:
 	ld a,[$d01b]
 	cp $12
 	ret nc
@@ -697,6 +717,7 @@ Function43ec:
 	call Function463e
 	ret 
 
+Function457d:
 	ld a,[$d01b]
 	cp $06
 	ret c
@@ -709,15 +730,17 @@ Function43ec:
 	call Function463e
 	ret 
 
+Function4593:
 	ld a,$06
 	ld c,a
 	ld a,[$d01b]
 	push de
-	call $0234
+	call APIByteDivide
 	pop de
 	ld h,a
 	ret 
 
+Function45a0:
 	push af
 	ld a,[$d01b]
 	call Function46fb
@@ -725,7 +748,7 @@ Function43ec:
 	ld a,$02
 	ld c,a
 	ld a,[$d01c]
-	call $022b
+	call APISmallMultiply
 	ld [$d011],a
 	ld a,[$d011]
 	add a,$1f
@@ -752,13 +775,17 @@ Function43ec:
 	call Function4f1e
 	ret 
 
+Function45e2:
 	push de
 	pop bc
-	ld hl,$45eb
+	ld hl, .jumptable
 	push hl
-	jp $05f5
-	
-	db $F3, $45, $FB, $45, $05, $46, $0D, $46
+	jp Jumptable
+.jumptable
+	dw Function45F3
+	dw Function45FB
+	dw Function4605
+	dw Function460D
 	
 	
 	

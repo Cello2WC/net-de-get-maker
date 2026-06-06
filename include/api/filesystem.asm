@@ -21,6 +21,9 @@ APIValidateFilesystem::
 ; @param	bc	Requested file size. (Only used if the file is being created)
 ; @param	de	Pointer to filename string. (Max. 4 bytes)
 ;               It is standard to name your game's save file after its game ID.
+;               
+;               Pro-tip: You can set `de` to $4009 to grab the
+;               game ID straight from your game's header!
 ; 
 ; @return	b	Return state, from [FOUND_OR_CREATED, ENTRIES_FULL, BAD_FILENAME_OR_NO_SPACE, UNKNOWN_ERROR]
 ; @return	c	1 if a new file was created, 0 otherwise
@@ -50,6 +53,9 @@ APICloseFile::
 ; For some reason.
 ; 
 ; @param	de	Pointer to filename string. (Max. 4 bytes)
+;               
+;               Pro-tip: You can set `de` to $4009 to grab the
+;               game ID straight from your game's header!
 ; 
 ; @return	a	Return code, from [0 = OK, -1 = NOT_FOUND, -2 = BAD_FILENAME, -3 = BAD_CHECKSUM].
 APIDeleteFile::

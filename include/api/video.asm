@@ -38,15 +38,21 @@ APICopyVRAM::
 ; 	[$37FF][0..2], [$FFAD][0..2], [$C115][0..2] = [$FF9D][0..2]
 ; 	ei
 ; endif
+
+; APICopyVRAMFar -- 019B
+; 
+; Calls APICopyVRAM, handling bank swapping.
 ; 
 ; @param	hl	source
 ; @param	de	destination
 ; @param	bc	length
-APIFunction19:: ; 019b
+; @param	$c21c	bank
+; @param	$c21d	ROM/Flash select ($00 for ROM, $08 for flash)
+APICopyVRAMFar:: ; 019b
 	jp $0a68
 
-; Duplicate of APIFunction19
-APIFunction1A:: ; 019e
+; Duplicate of APICopyVRAMFar
+APICopyVRAMFarDuplicate:: ; 019e
 	jp $0a68
 
 ; APIScreenRect -- 01A1
@@ -75,7 +81,12 @@ APIScreenRectAttr:: ; 01a4
 	jp $0b15
 
 ; ?
-; looks kinda like APIFunction19
+; looks kinda like APICopyVRAMFar
 ; this code makes my eyes go fuzzy
+
+; @param	hl	source
+; 
+; @param	$c21c	bank
+; @param	$c21d	ROM/Flash select ($00 for ROM, $08 for flash)
 APIFunction1D:: ; 01a7
 	jp $0b5f

@@ -77,11 +77,11 @@ APIFunction2F:: ; 01dd
 ; [$FF4F] = [$C1AF]
 ; de = $96C0 ; GFX tile $16C
 ; bc = $120  ; 18 tiles
-; call APIFunction19
+; call APICopyVRAMFar
 ; a = [$FF9D]
 ; de = $8760 ; GFX tile $076
 ; bc = $00A0 ; 10 tiles
-; call APIFunction19
+; call APICopyVRAMFar
 ; pop [$FF4F]
 ; return
 APIFunction30:: ; 01e0
