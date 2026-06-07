@@ -22,7 +22,7 @@ DEF GAME_CATEGORY EQU CATEGORY_PROGRAM
 ; GENRE_SIMULATION
 ; GENRE_SHOOTER
 ; GENRE_ADVENTURE
-DEF GAME_GENRE EQU GENRE_ADVENTURE
+DEF GAME_GENRE EQU GENRE_MISC
 
 ; String
 ; Max. 10 characters (20 bytes)
@@ -47,10 +47,10 @@ DEF BG_MAP_WIDTH EQU $20
 
 MinigameStart:
 
-    call BeginMenu
-    ld a, [$C214]
-    cp $ff
-    ret z
+ ;   call BeginMenu
+  ;  ld a, [$C214]
+   ; cp $ff
+    ;ret z
 
 
 ;    call APIClearVRAM

@@ -28,13 +28,14 @@ with open("bin/%s" % args.filename, "rb") as game_bin:
 	game_binary = game_bin.read()
 	
 cursor = db.cursor()
-cursor.execute("INSERT INTO bmvj_games VALUES(NULL, 0, 0, 0, 0, 0, \"\", \"\", 0, \"\")")
+cursor.execute("INSERT INTO bmvj_games VALUES(NULL, 0, 0, 0, 0, 0, 0, \"\", \"\", 0, \"\")")
 db.commit()
 
 game_id = cursor.lastrowid
 # insert game ID into binary
 game_binary = game_binary[:10] + str.encode(f"{game_id:03d}") + game_binary[13:]
 
+category = game_binary[6]
 genre = game_binary[7]
 with open("bin/%s.title" % args.filename, "wb") as title:
 	t = game_binary[15:36]
@@ -56,6 +57,6 @@ level_sense = 0
 level_hidden = 0
 price = 0
 
-cursor.execute("UPDATE bmvj_games SET genre=%s,level_react=%s,level_smart=%s,level_sense=%s,level_hidden=%s,title=LOAD_FILE(%s),description=LOAD_FILE(%s),price=%s,game_binary=LOAD_FILE(%s) WHERE id = %s", 
-(genre, level_react, level_smart, level_sense, level_hidden, f'/var/lib/mysql/tmp/{args.filename}.title', f'/var/lib/mysql/tmp/{args.filename}.description', price, f'/var/lib/mysql/tmp/{args.filename}.compressed', game_id))
+cursor.execute("UPDATE bmvj_games SET genre=%s,category=%s,level_react=%s,level_smart=%s,level_sense=%s,level_hidden=%s,title=LOAD_FILE(%s),description=LOAD_FILE(%s),price=%s,game_binary=LOAD_FILE(%s) WHERE id = %s", 
+(genre, category, level_react, level_smart, level_sense, level_hidden, f'/var/lib/mysql/tmp/{args.filename}.title', f'/var/lib/mysql/tmp/{args.filename}.description', price, f'/var/lib/mysql/tmp/{args.filename}.compressed', game_id))
 db.commit()

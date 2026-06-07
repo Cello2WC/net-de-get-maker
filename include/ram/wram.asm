@@ -87,9 +87,39 @@ wUnpackedPalettes:: ds 8*4*2*3 ; C422
 
 ds $173	; C4E2
 
-ds $20 ; C655
-
-dw ; C675
+wC655: db ; C655
+wC656: db
+wC657: db
+wC658: db
+wC659: db
+wC65A: db
+wC65B: db
+wC65C: db
+wC65D: db
+wC65E: db
+wC65F: db
+wC660: db
+wC661: db
+wC662: db
+wC663: db
+wC664: db
+wC665: db
+wC666: db
+wC667: db
+wC668: db
+wC669: db
+wC66A: db
+wC66B: db
+wMinigameFlashBank: db
+wC66D: db
+wC66E: db
+wC66F: db
+wC670: db
+wC671: db
+wC672: db
+wC673: db
+wC674: db
+wC675: dw ; C675
 wOpenFile::
 wOpenFileData:: dw ; C677
 wOpenFileIndex:: db ; C679

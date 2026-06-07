@@ -260,9 +260,9 @@ Function5012:
 	ret
 	
 GameInfo:
-	ldh a, [$FFAB]
+	ld a, [wMinigameFlashBank]
 	ldh [$FF9D], a ; Bank B Num
-	ldh a, [$FFAC]
+	ld a, $08
 	ldh [$FF9E], a ; Bank B Rom/Flash Select
 	
 	ld a, LOW(GameInfoData+$2000)

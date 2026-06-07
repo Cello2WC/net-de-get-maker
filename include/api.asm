@@ -667,10 +667,38 @@ APIFunction6E:: ; 029a
 	jp $172d
 APIFunction6F:: ; 029d
 	jp $176f
+	
+	
+; Temporarily disables VBlank handler,
+; Calls 10:4E90,
+; and re-enables the VBlank handler.	
+
+; 10:4E90 --
+; jp ([$C67E] * 2) + $4EA2
+
+; 10:4EA2
+; $516C
+; $50BA
+; $4FD6
+; $5639
+; $568B
+; $51FE
+; $5334
+; $545B
+; $5472
+; $4FB3
+; $4F32
+; $4EC0
+; $55AA
+; $54EC
+; $52F8
+	
 APIFunction70:: ; 02a0
 	jp $3edc
 APIFunction71:: ; 02a3
 	jp $3f69
+	
+	
 APIFunction72:: ; 02a6
 	jp $3f3a
 APIFunction73:: ; 02a9
