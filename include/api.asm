@@ -252,75 +252,10 @@ APIPopReturn:: ; 0222
 
 
 include "include/api/math.asm"
-
+include "include/api/audio.asm"
 
 	
-; APILoadSong - 0246
-; 
-; Loads song data into the audio engine, but doesn't play it.
-; 
-; @param	de	song id + 0x20
-; @param	hl	default audio engine parameters pointer? (usually 0x6000)
-; 
-; @see		APIPlaySong
-APILoadSong::
-	jp $21d7
 
-; [rBankBNum ($37FF)],            [wBankBNumBackup]    = [$C663]
-; [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$C664]
-; [rBankANum ($27FF)],            [wBankANumBackup]    = $1E
-; [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = $00
-; call $4000
-; if [$C672] == 0 then:
-;     [rBankANum ($27FF)],            [wBankANumBackup]    = [$FFAB]
-;     [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = [$FFAC]
-;     [rBankBNum ($37FF)],            [wBankBNumBackup]    = [$FFAD]
-;     [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$FFAE]
-; else:
-;     [rBankANum ($27FF)] =            [$CB81]
-;     [rBankARomFlashSelect ($2800)] = [$CB82]
-;     [rBankBNum ($37FF)] =            [$CB83]
-;     [rBankBRomFlashSelect ($3800)] = [$CB84]
-; end
-;     
-
-; well this sure does SOMETHING to the music!
-APIFunction53:: ; 0249
-	jp $2242
-
-; APIPlaySong -- 024C
-; 
-; Plays song data last loaded by APILoadSong [0246]
-; 
-; @param	a	? (usually $81) [goes to $CF80, $C66B, $C665]
-; 
-; @see		APILoadSong
-APIPlaySong::
-	jp $22a7
-	
-; APISilenceAudio -- 024F
-; 
-; silences all currently playing notes,
-; but does NOT stop music from continuing to play
-;
-; @param	a	? (usually $80) [goes to $CF82]
-APISilenceAudio::
-	jp $230c
-	
-; APIStopAudio -- 0252
-;
-; silences all currently playing notes,
-; AND stops music from continuing
-APIStopAudio::
-	jp $235f
-	
-	
-; APIFadeAudio -- 0255
-; 
-; Fades audio to silence,
-; over the course of about a second.
-APIFadeAudio:: ; 0255
-	jp $23cc
 	
 ; 
 ; something to do with metasprites i think????
@@ -535,16 +470,43 @@ APIFunction5B:: ; 0261
 ; 				I think this should always be 0?
 APIPredef:: ; 0264
 	jp $23e4
-APIFunction5D:: ; 0267
-	jp $24b8
-APIFunction5E:: ; 026a
-	jp $24b9
-APIFunction5F:: ; 026d
-	jp $254e
-APIFunction60:: ; 0270
-	jp $25cb
-APIFunction61:: ; 0273
-	jp $25ef
+; APIStub4 -- 0267
+; 
+; A single `ret` instruction.
+APIStub4:: ; 0267
+    jp $24b8
+
+; APIFarCall -- 026a
+; 
+; Call the routine at address `hl` in flash bank `a`.
+; The bank is swapped into the appropriate region based on `hl`.
+; 
+; @param    a    Flash bank to swap in
+; @param    hl    Address to call
+APIFarCall:: ; 026a
+    jp $24b9
+
+; APIStartMiniGame -- 026d
+; 
+; Start minigame number `a`. $00-$0E are in predefined ROM banks,
+; while $10-$8F represent a flash bank + $10.
+; In the latter case, the bank number is written to [$C66C].
+; 
+; @param    a    Minigame to play
+APIStartMiniGame:: ; 026d
+    jp $254e
+
+; APIFastModeOn -- 0270
+; 
+; Enable CPU double-speed mode.
+APIFastModeOn:: ; 0270
+    jp $25cb
+
+; APIFastModeOff -- 0273
+; 
+; Disable CPU double-speed mode.
+APIFastModeOff:: ; 0273
+    jp $25ef
 	
 ; APICopy -- 0276
 ; 
@@ -699,14 +661,57 @@ APIFunction71:: ; 02a3
 	jp $3f69
 	
 	
+; Calls APIFunction70's 5th function (10:51FE)
 APIFunction72:: ; 02a6
 	jp $3f3a
+	
+; Calls APIFunction70's 6th function (10:5334)
+
+; 10:5334 --
+; 
+; [$C866][0..2] = de
+; [$C86A][0..2] = bc
+; [$C864][0..2] = [$FFAD][0..2]
+; [$C870] = [$FFAE] | [$FFAC]
+; 
+; b = $0F
+; hl = $3CD8 ; [$3CD8] = $54
+; do {
+;     e = [hl++]
+;     d = 0
+;     call Function35D7 ; swap bank B to num `e`, select `d`
+;     push hl
+;     [$C862] = e
+;     hl = $600D ; maybe GameHeader_Unk2?
+;     de = [$C866][0..2]
+;     c = 2
+;     call Function5599 ; compare `c` bytes between `de` and `hl`. [$C862] = $FF if they're not equal
+;     pop hl
+;     
+;     if [$C862] != $FF:
+;         de = [$C86A][0..2]
+;         [de++] = $0F - b
+;         [$C86A][0..2] = de
+; } while(--b != 0)
+; 
+; with open('SYS1'):
+;     [$C863] = [SYS1:007]
+; 
+; [$C868] = swap([$C863])
+; [$C862] = $FF
+; 
+; 
 APIFunction73:: ; 02a9
 	jp $3f4c
+
+; Calls APIFunction70's 7th function (10:545B)
 APIFunction74:: ; 02ac
 	jp $3f55
+	
+; Calls APIFunction70's 8th function (10:5472)
 APIFunction75:: ; 02af
 	jp $3f60
+	
 APIFunction76:: ; 02b2
 	jp $318a
 APIFunction77:: ; 02b5
