@@ -11,7 +11,7 @@ include "include/ram.asm"
 ; CATEGORY_APPEND
 ;  - Add-on to another minigame
 DEF GAME_CATEGORY EQU CATEGORY_APPEND
-DEF APPEND_ID EQU 5
+DEF APPEND_ID EQU APPEND_SLIDING_TILE_PUZZLE
 
 ; Affects minigame's secondary icon
 ; Accepted values:
@@ -27,7 +27,7 @@ DEF GAME_GENRE EQU GENRE_PUZZLE
 
 ; String
 ; Max. 10 characters (20 bytes)
-game_title "Tiles"
+game_title "Peng.Puzl."
 
 ; String
 ; Max. 18 characters
@@ -38,17 +38,21 @@ game_description "NDG-Maker example"
 include "include/header.asm"
 
 MinigameStart:
-	ret
+	; Launch the sliding tile puzzle
+	ld a, 14
+	jp APIStartMiniGame
 
 
 SECTION "Tile Palettes", ROMX[$40A0]
 incbin "game/palettes.bin"
-SECTION "Border Palette", ROMX[$40D8]
-	db $FF,$7F,$37,$16,$72,$19,$A8,$0C
-SECTION "Object Palettes", ROMX[$40E0]
-incbin "game/objpals.bin"
 
-SECTION "Tilemap", ROMX[$4120]
+SECTION "Border Palette", ROMX[$40D8]
+	dw $7FFF
+	dw $1637
+	dw $1972
+	dw $0CA8
+	
+incbin "game/objpals.bin"
 
 ; Top Border
 incbin "game/tilemap.bin", 0, 20
@@ -99,17 +103,9 @@ ENDR
 DEF _loop_y += 1
 ENDR
 
-SECTION "Tiles 1", ROMX[$43F0]
-;incbin "game/tiles.2bpp", $800, $800
-SECTION "Tiles 2", ROMX[$4BF0]
 incbin "game/tiles.2bpp"
 
-
-
-SECTION "Tiles 3", ROMX[$53F0]
-;incbin "game/tiles.2bpp", $1000, $800
-
-SECTION "Unk1", ROMX[$5BF0]
+SECTION "Title", ROMX[$5BF0]
 	db "ぺんぎん<NULL>"
 
 
