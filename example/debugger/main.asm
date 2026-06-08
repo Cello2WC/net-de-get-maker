@@ -379,7 +379,7 @@ DrawData:
 VBlankHandler:
     call VBlank
     ;call APIUpdatePalettesVBlank
-    jp APIOAMDMA
+    jp hAPIOAMDMA
 
 include "game/vblank.asm"
     

@@ -342,7 +342,7 @@ Function42b7:
 Function42e3:
 	ld a,$44
 VBlankRoutine:
-	call APIOAMDMA
+	call hAPIOAMDMA
 	call APIUpdatePalettesVBlank
 	call Function49e1
 	ld a,[$d000]

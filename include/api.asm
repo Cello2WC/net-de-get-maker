@@ -414,50 +414,6 @@ APIFunction5A:: ; 025e
 APIFunction5B:: ; 0261 
 	jp $11aa
 	
-; Call Predef?
-
-; hl = $05C8 + (a * 3)
-; if b == 0:
-;     [$C107 + ([$C10E] * 2)][0..2] = [$FFAB][0..2]
-;     [$C10E]++
-;     aed = [hl][0..3]
-;     
-;     di
-;     [rBankANum],    [$FFAB], [wBankANumBackup] = a
-;     [rBankASelect], [$FFAC], [wBankASelectBackup] = 0
-;     ei
-;     
-;     call de
-;     
-;     [$C10E]--
-;     [$FFAB][0..2] = [$C107 + ([$C10E] * 2)][0..2]
-;     
-;     di
-;     [rBankANum],    [wBankANumBackup] = [$FFAB]
-;     [rBankASelect], [wBankASelectBackup] = [$FFAC]
-;     ei
-; else:
-;     push hl
-;     [$C10D + ([$C10F] * 2)][0..2] = [$FFAD][0..2]
-;     [$C10F]++
-;     aed = [hl][0..3]
-;     
-;     di
-;     [rBankBNum],    [$FFAD], [wBankBNumBackup] = a
-;     [rBankBSelect], [$FFAE], [wBankBSelectBackup] = 0
-;     ei
-;     
-;     call de
-;     
-;     [$C10F]--
-;     [$FFAD][0..2] = [$C10D + ([$C10F] * 2)][0..2]
-;     
-;     di
-;     [rBankBNum],    [wBankBNumBackup] = [$FFAD]
-;     [rBankBSelect], [wBankBSelectBackup] = [$FFAE]
-;     ei
-; end
-
 ; APIPredef -- 0264
 ; 
 ; Call predefined function `a` from the table
@@ -470,6 +426,7 @@ APIFunction5B:: ; 0261
 ; 				I think this should always be 0?
 APIPredef:: ; 0264
 	jp $23e4
+
 ; APIStub4 -- 0267
 ; 
 ; A single `ret` instruction.
@@ -490,7 +447,7 @@ APIFarCall:: ; 026a
 ; 
 ; Start minigame number `a`. $00-$0E are in predefined ROM banks,
 ; while $10-$8F represent a flash bank + $10.
-; In the latter case, the bank number is written to [$C66C].
+; In the latter case, the bank number is written to wMinigameFlashBank [$C66C].
 ; 
 ; @param    a    Minigame to play
 APIStartMiniGame:: ; 026d
@@ -529,11 +486,11 @@ APIFastModeOff:: ; 0273
 ; @see	APICloseFile
 APICopy:: ; 0276
 	jp $2613
-	
+
+; APIJoypadFrameCount -- 0279
 ; 
-; 
-; [$FF8B]++
-; ; fall thru to APIJoypad
+; Increments [$FF8B],
+; And falls through to APIJoypad.
 APIJoypadFrameCount:: ; 0279
 	jp $261c
 ; [$FF00] = $20
@@ -701,11 +658,11 @@ APIFunction72:: ; 02a6
 ; [$C862] = $FF
 ; 
 ; 
-APIFunction73:: ; 02a9
+APIFindAppendMiniGames:: ; 02a9
 	jp $3f4c
 
 ; Calls APIFunction70's 7th function (10:545B)
-APIFunction74:: ; 02ac
+APIGetMiniGameBankDuplicate:: ; 02ac
 	jp $3f55
 	
 ; Calls APIFunction70's 8th function (10:5472)
@@ -716,6 +673,3 @@ APIFunction76:: ; 02b2
 	jp $318a
 APIFunction77:: ; 02b5
 	jp $3560
-	
-	
-DEF APIOAMDMA EQU $FF80
