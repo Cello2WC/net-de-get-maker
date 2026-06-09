@@ -9,7 +9,7 @@ GameHeader_Category::   db GAME_CATEGORY
 GameHeader_Genre::      db GAME_GENRE
 GameHeader_Unk1::       db 1 ; ???
 GameHeader_GameID::     db "G000" ; to be assigned by server
-GameHeader_Unk2::
+GameHeader_AppendID::
 IF DEF(APPEND_ID)
 	dw APPEND_ID ; ???
 ELSE
@@ -37,6 +37,11 @@ IF DEF(GAME_TITLE)
 ELSE
 	db $00
 ENDC
+
+SECTION "Header Unknown Append Data", ROMX[$404D]
+GameHeader_AppendUnk1::
+	dw 0 ; pointer to some kind of data
+	; unknown data follows
 
 SECTION "Main", ROMX[$406D]
 GameHeader_Magic::

@@ -24,6 +24,10 @@ with open("bin/%s" % args.filename, "rb") as game_bin:
 	# trim out trailing zeroes
 	game_data = bytearray(game_data).rstrip(b"\x00")[:-1]
 	
+	# inject checksum
+	# checksum = (sum(game_data) - (0x3B + 0xB3)) % 0x10000
+	# game_data = game_data[:0x6D] + checksum.to_bytes(2, 'little') + game_data[0x6F:]
+	
 	
 with open("bin/%s" % args.filename, "wb") as game_bin:
 	game_bin.write(game_data)
