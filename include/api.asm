@@ -73,18 +73,12 @@ APIFunction2E:: ; 01da
 APIFunction2F:: ; 01dd
 	jp $272a
 
-; push [$FF4F] & %0000_0001
-; [$FF4F] = [$C1AF]
-; de = $96C0 ; GFX tile $16C
-; bc = $120  ; 18 tiles
-; call APICopyVRAMFar
-; a = [$FF9D]
-; de = $8760 ; GFX tile $076
-; bc = $00A0 ; 10 tiles
-; call APICopyVRAMFar
-; pop [$FF4F]
-; return
-APIFunction30:: ; 01e0
+; APILoadCustomMenuGFX -- 01e0
+; 
+; Load menu tiles from address `hl` in bank [$C21C][0..2].
+; 
+; @param	hl	Source
+APILoadCustomMenuGFX:: ; 01e0
 	jp $2731
 
 ; hl = de + (a*8)
@@ -132,9 +126,17 @@ APITextBox::
 APIScrollText::
 	jp $27aa
 	
-	
-
-APIFunction34:: ; 01ec
+; APITryCreateFile -- 01ec
+; 
+; Try to create a file with the given name and size.
+; If it doesn't exist and can't be created,
+; display a warning and ask the player if they want to continue anyway.
+; 
+; @param	bc	Requested file size
+; @param	de	Pointer to filename string
+; 
+; @return	b	Return state, from [OK, WARNING_YES, WARNING_NO]
+APITryCreateFile:: ; 01ec
 	jp $27c1
 	
 ; APIDrawString -- 01EF
@@ -547,25 +549,87 @@ APIJoypadFrameCount:: ; 0279
 	
 APIJoypad:: ; 027c
 	jp $2620
-APIFunction65:: ; 027f
+
+; APIGetMiniGameBank -- 027f
+; 
+; Load the bank number for minigame `a` in `e`,
+; and the flash flag ($00 or $08) in `d`.
+; 
+; @param	a	Minigame number
+; 
+; @return	d	$00 for ROM, $08 for flash
+; @return	e	ROM/flash bank number for minigame
+APIGetMiniGameBank:: ; 027f
 	jp $2685
-	
-	
-	
-	
-APIFunction66:: ; 0282
+
+; APILoadDefaultMenuGFX -- 0282
+; 
+; Load the default menu graphics.
+; 
+; @see APILoadDakutenGFX
+; @see APILoadCustomMenuGFX
+APILoadDefaultMenuGFX:: ; 0282
 	jp $1663
-APIFunction67:: ; 0285
+
+; APIRebuildSysFiles -- 0285
+; 
+; Create SYS0 and SYS1 if they don't already exist,
+; and reinitialize SYS1, but not SYS0 due to a bug.
+; Due to the same bug, which WRAM bank is loaded after
+; this function returns is undefined.
+; 
+; @return	a	Return state, from [OK, VALIDATE_FS_FAILED, OPEN_FILE_FAILED]
+APIRebuildSysFiles:: ; 0285
 	jp $1675
-APIFunction68:: ; 0288
+
+; APILoadSys0 -- 0288
+; 
+; Copy the contents of SYS0 to $C700.
+; 
+; @return	a	Return state, from [OK, OPEN_FILE_FAILED]
+APILoadSys0:: ; 0288
 	jp $1689
-APIFunction69:: ; 028b
+
+; APIWriteSys0 -- 028b
+; 
+; Copy data from $C700 to SYS0.
+; 
+; @return	a	Return state, from [OK, OPEN_FILE_FAILED]
+APIWriteSys0:: ; 028b
 	jp $169d
-APIFunction6A:: ; 028e
+
+; APIClearSys0 -- 028e
+; 
+; Zero out 50 bytes (the size of SYS0) at $C700.
+APIClearSys0:: ; 028e
 	jp $16b1
-APIFunction6B:: ; 0291
+
+; APIReadTiles -- 0291
+; 
+; Read the specified rectangle of tilemap and attribute data to `de`.
+; [$C63A] bit 7 specifies which tilemap to copy from,
+; while [$C63A] bits 0-2 specify which WRAM bank to load.
+; 
+; @param	b	left x coordinate
+; @param	c	top y coordinate
+; @param	h	width
+; @param	l	height
+; @param	de	destination
+APIReadTiles:: ; 0291
 	jp $16bf
-APIFunction6C:: ; 0294
+
+; APIWriteTiles -- 0294
+; 
+; Write the specified rectangle of tilemap and attribute data from `de`.
+; [$C63A] bit 7 specifies which tilemap to copy from,
+; while [$C63A] bits 0-2 specify which WRAM bank to load.
+; 
+; @param	b	left x coordinate
+; @param	c	top y coordinate
+; @param	h	width
+; @param	l	height
+; @param	de	source
+APIWriteTiles:: ; 0294
 	jp $16d6
 
 ; APIDoMenu -- 0297
@@ -614,62 +678,81 @@ APIFunction6F:: ; 029d
 	
 APIFunction70:: ; 02a0
 	jp $3edc
-APIFunction71:: ; 02a3
+
+; APICopyStringFillNumber -- 02a3
+; 
+; Copy a string from `de` to `hl`,
+; replacing any $FF bytes with digits from the number in `bc`.
+; 
+; @param	a	Number of digits - 1
+; @param	bc	Number to insert
+; @param	de	Source
+; @param	hl	Destination
+APICopyStringFillNumber:: ; 02a3
 	jp $3f69
 	
-	
-; Calls APIFunction70's 5th function (10:51FE)
-APIFunction72:: ; 02a6
+; APIFindMiniGame -- 02a6
+; 
+; Find the minigame with the ID pointed to by `de`,
+; returning its number in `a`, or $FF if not found.
+; 
+; @param	de	Pointer to minigame ID
+; 
+; @return	a	Minigame number (or $FF)
+APIFindMiniGame:: ; 02a6
 	jp $3f3a
 	
-; Calls APIFunction70's 6th function (10:5334)
-
-; 10:5334 --
+; APIFindAppendMiniGames -- 02a9
 ; 
-; [$C866][0..2] = de
-; [$C86A][0..2] = bc
-; [$C864][0..2] = [$FFAD][0..2]
-; [$C870] = [$FFAE] | [$FFAC]
+; Find all minigames whose two-byte append IDs match the one pointed
+; to by `de`, write their numbers at `bc`, and return a count in `b`.
 ; 
-; b = $0F
-; hl = $3CD8 ; [$3CD8] = $54
-; do {
-;     e = [hl++]
-;     d = 0
-;     call Function35D7 ; swap bank B to num `e`, select `d`
-;     push hl
-;     [$C862] = e
-;     hl = $600D ; maybe GameHeader_Unk2?
-;     de = [$C866][0..2]
-;     c = 2
-;     call Function5599 ; compare `c` bytes between `de` and `hl`. [$C862] = $FF if they're not equal
-;     pop hl
-;     
-;     if [$C862] != $FF:
-;         de = [$C86A][0..2]
-;         [de++] = $0F - b
-;         [$C86A][0..2] = de
-; } while(--b != 0)
+; @param	bc	Pointer to array buffer
+; @param	de	Pointer to append ID
 ; 
-; with open('SYS1'):
-;     [$C863] = [SYS1:007]
-; 
-; [$C868] = swap([$C863])
-; [$C862] = $FF
-; 
-; 
+; @return	b	Number of minigames found
 APIFindAppendMiniGames:: ; 02a9
 	jp $3f4c
 
-; Calls APIFunction70's 7th function (10:545B)
-APIGetMiniGameBankDuplicate:: ; 02ac
+; APIGetMiniGameBank0 -- 02ac
+; 
+; Same as APIGetMiniGameBank.
+; 
+; @param	a	Minigame number
+; 
+; @return	d	$00 for ROM, $08 for flash
+; @return	e	ROM/flash bank number for minigame
+; 
+; @see	APIGetMiniGameBank
+APIGetMiniGameBank0:: ; 02ac
 	jp $3f55
 	
-; Calls APIFunction70's 8th function (10:5472)
-APIFunction75:: ; 02af
+; APICopyFar -- 02af
+; 
+; Swap in ROM/flash bank `de`, then copy `bc` bytes
+; from the pointer at [$C862] to the pointer at [$C864].
+; 
+; @param	bc	Length
+; @param	d	Source: $00 for ROM, $08 for flash
+; @param	e	Source: ROM/flash bank number
+; 
+; @note	The source bank is always swapped into bank B,
+;      	but a source address in bank A will be corrected.
+APICopyFar:: ; 02af
 	jp $3f60
 	
+; [$C212] = max(a, [$C20F] - 1) % ([$C20E] * [$C20D])
+; [$C215] = max(a, [$C20F] - 1) % ([$C20E] * [$C20D])
+; [$C21B] = (max(a, [$C20F] - 1) / ([$C20E] * [$C20D])) / [$C210]
+; [$C214] = (max(a, [$C20F] - 1) / ([$C20E] * [$C20D])) % [$C210]
+; [$C216] = (max(a, [$C20F] - 1) / ([$C20E] * [$C20D])) % [$C210]
 APIFunction76:: ; 02b2
 	jp $318a
-APIFunction77:: ; 02b5
+
+; APIMobile -- 02b5
+; 
+; Call a function from the mobile adapter API.
+; 
+; @param	a	Function index
+APIMobile:: ; 02b5
 	jp $3560
