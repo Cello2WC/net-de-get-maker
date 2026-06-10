@@ -647,9 +647,21 @@ APIDoMenu::
 ; @return	b	Return state, from [OK, WARNING_YES, WARNING_NO]
 APITryCreateFile:: ; 029a
 	jp $172d
-APIFunction6F:: ; 029d
+
+; APISkillPoint -- 029d
+; 
+; Give the player the specified number of points in each skill.
+; 
+; @param	a	Minigame number
+; @param	$C84B	Reflex points
+; @param	$C84C	Intelligence points
+; @param	$C84D	Sense points
+; @param	$C84E	Hidden points (global)
+; @param	$C84F	Hidden points (this minigame)
+; 
+; @note	If this is one of the last 8 minigames played, $C84E is skipped.
+APISkillPoint:: ; 029d
 	jp $176f
-	
 	
 ; Temporarily disables VBlank handler,
 ; Calls 10:4E90,
