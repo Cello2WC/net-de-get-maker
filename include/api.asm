@@ -126,17 +126,7 @@ APITextBox::
 APIScrollText::
 	jp $27aa
 	
-; APITryCreateFile -- 01ec
-; 
-; Try to create a file with the given name and size.
-; If it doesn't exist and can't be created,
-; display a warning and ask the player if they want to continue anyway.
-; 
-; @param	bc	Requested file size
-; @param	de	Pointer to filename string
-; 
-; @return	b	Return state, from [OK, WARNING_YES, WARNING_NO]
-APITryCreateFile:: ; 01ec
+APIFunction34:: ; 01ec
 	jp $27c1
 	
 ; APIDrawString -- 01EF
@@ -645,8 +635,17 @@ APIWriteTiles:: ; 0294
 APIDoMenu::
 	jp $16ed
 	
-	
-APIFunction6E:: ; 029a
+; APITryCreateFile -- 029a
+; 
+; Try to create a file with the given name and size.
+; If it doesn't exist and can't be created,
+; display a warning and ask the player if they want to continue anyway.
+; 
+; @param	bc	Requested file size
+; @param	de	Pointer to filename string
+; 
+; @return	b	Return state, from [OK, WARNING_YES, WARNING_NO]
+APITryCreateFile:: ; 029a
 	jp $172d
 APIFunction6F:: ; 029d
 	jp $176f
