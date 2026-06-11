@@ -167,7 +167,7 @@ APIFunction36:: ; 01f2
 	jp $28e3
 APIFunction37:: ; 01f5
 	jp $2945
-APIFunction38:: ; 01f8
+APIMenuLoop:: ; 01f8
 	jp $294e
 	
 	
