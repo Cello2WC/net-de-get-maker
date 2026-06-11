@@ -80,7 +80,7 @@ APIFunction2E:: ; 01da
 ; Set the text engine's text pointer to `de`.
 ; 
 ; @param	de	String pointer
-APIFunction2F:: ; 01dd
+APISetTextPointer:: ; 01dd
 	jp $272a
 
 ; APILoadCustomMenuGFX -- 01e0
@@ -116,18 +116,32 @@ APILoadCustomMenuGFX:: ; 01e0
 ; [$C1A5][0..2] = de
 ; hl = de
 ; return [$C1AA]?
-APIFunction31:: ; 01e3
+
+; APISetTextBox -- 01E3
+; 
+; Set the current text box region.
+; 
+; @param	de	Pointer to 8-byte entries (X,Y,C,L,T,0,0,0)
+; @param	a	Index into `de`
+; @param	c	Default height (if `H` is zero)
+; @param	X	X coordinate of left border
+; @param	Y	Y coordinate of top border
+; @param	C	Characters per line
+; @param	L	Lines per page
+; @param	T	Border type, from [NO_BORDER, NORMAL_SHADOW, FULL_SHADOW]
+APISetTextBox:: ; 01e3
 	jp $2753
 	
-; APITextBox -- 01E6
+; APIOpenTextBox -- 01E6
 ; 
-; Clears a region of the screen, and designates 
-; that region as the active Text Box.
+; Set and clear the current text box.
 ; 
-; @param	de	pointer to table of 4-byte (x,y,w,h) entries
-; @param	a	table index
-; @param	c	? (goes to $FF9E)
-APITextBox::
+; @param	de	Pointer to 8-byte entries (X,Y,C,L,T,0,0,0)
+; @param	a	Index into `de`
+; @param	c	Default height (if `H` is zero)
+; 
+; @see	APISetTextBox
+APIOpenTextBox::
 	jp $2799
 	
 ; APISetDialog -- 01E9
@@ -165,16 +179,16 @@ APIDrawString::
 ; 
 ; @param	hl	Pointer to list of null-terminated options
 ; @param	b	Width of each option
-; @param	d	Total number of options
 ; @param	c	Rows per page
+; @param	d	Total number of options
 ; @param	e	Options per row
 APIInitMenu:: ; 01f2
 	jp $28e3
 
-; APIDrawMenu -- 01F5
+; APIDrawMenu2 -- 01F5
 ; 
-; Draw the current menu page.
-APIDrawMenu:: ; 01f5
+; Set [$C213] to 1 and draw the current menu page.
+APIDrawMenu2:: ; 01f5
 	jp $2945
 
 ; APIMenuLoop -- 01F8
@@ -185,11 +199,20 @@ APIDrawMenu:: ; 01f5
 APIMenuLoop:: ; 01f8
 	jp $294e
 	
-	
-	
-APIFunction39:: ; 01fb
+; APIDrawTextBox -- 01FB
+; 
+; Draw the current text box on screen.
+; 
+; @param	hl	Tilemap/attribute map pointer
+APIDrawTextBox:: ; 01fb
 	jp $2bfe
-APIFunction3A:: ; 01fe
+
+; APIFillTextBox -- 01FE
+; 
+; Fill the current text box with tile number `a`.
+; 
+; @param	a	Tile number
+APIFillTextBox:: ; 01fe
 	jp $2d46
 
 ; APITextClear -- 0201
@@ -198,13 +221,30 @@ APIFunction3A:: ; 01fe
 APITextClear:: ; 0201
 	jp $2d53
 
+; a = 1 - (([$FF8B] / 4) % 4)
 APIFunction3C:: ; 0204
 	jp $2dc3
-APIFunction3D:: ; 0207
+
+; APIAddTextTriangleSprite -- 0207
+; 
+; Add a prompt triangle for the current text box to the sprite table.
+APIAddTextTriangleSprite:: ; 0207
 	jp $2dd0
-APIFunction3E:: ; 020a
+
+; APITextSpriteCoordinates -- 020A
+; 
+; Return the OAM coordinates for the bottom-right corner of the current text box.
+; 
+; @return	e	X coordinate
+; @return	d	Y coordinate
+APITextSpriteCoordinates:: ; 020a
 	jp $2de7
-APIFunction3F:: ; 020d
+
+; APIDrawNextChar -- 020D
+; 
+; Of the current dialog, draw a character or handle a control code.
+; If the character drawn is a dakuten or handakuten, repeat.
+APIDrawNextChar:: ; 020d
 	jp $2e15
 
 ; APITextSpace -- 0210
@@ -219,7 +259,14 @@ APITextSpace:: ; 0210
 APITextLine:: ; 0213
 	jp $2efa
 
-APIFunction42:: ; 0216
+; APIDrawChar -- 0216
+; 
+; Load a character tile and draw it in the current text box.
+; 
+; @param	a	Character code
+; @param	b	X coordinate
+; @param	c	Y coordinate
+APIDrawChar:: ; 0216
 	jp $2f1c
 
 ; APITileMapOffset -- 0219
@@ -268,7 +315,11 @@ APIFunction44:: ; 021c
 ; 		
 ; 	endif
 ; }
-APIFunction45:: ; 021f
+
+; APIDrawMenu -- 021F
+; 
+; Draw the current menu page.
+APIDrawMenu:: ; 021f
 	jp $30bc
 	
 	
@@ -308,161 +359,43 @@ include "include/api/audio.asm"
 	
 
 	
+; APISetMegaSprites -- 0258
 ; 
-; something to do with metasprites i think????
+; Set the megasprite array pointer.
+; The megasprite array is an array of pointers to megasprites.
+; Each megasprite is an array of pointers to frames.
+; Each frame consists of a length byte followed by a series of 4-byte entries in OAM format.
 ; 
-; 
-; # items + 4-byte data table
-;  
-; 
-; hl[Sprite?][Frame?][Object][Y,X,T,A]
-; 
-; [$C1C5->$C1C6] = hl (little endian)
-; 
-; @param	hl	pointer to table of 11(?) pointers to tables of pointers to tables of 4-byte values starting with length byte
-; 				[G010 has table $01,$57, $75,$59, $83,$59, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00]
-				; $5701 - $0F,$57, $84,$57, $ED,$57, $56,$58, $AB,$58, $14,$59, $75,$59, $1D,$00
-				; $570F - $1D, 
-				;         $00, $10, $00, $01, 
-				;         $00, $18, $01, $04, 
-				;         $00, $20, $02, $01, 
-				;         $00, $28, $03, $01,
-				;         $08, $00, $04, $01,
-				;         $08, $08, $05, $04,
-				;         $08, $10, $06, $04,
-				;         $08, $18, $07, $04,
-				;         $08, $20, $08, $04,
-				;         $08, $28, $09, $01,
-				;         $10, $00, $0A, $01,
-				;         $10, $08, $0B, $04,
-				;         $10, $10, $0C, $01,
-				;         $10, $18, $0D, $01,
-				;         $10, $20, $0E, $01,
-				;         $10, $28, $0F, $01,
-				;         $18, $08, $10, $00,
-				;         $18, $10, $11, $00,
-				;         $18, $18, $12, $00,
-				;         $18, $20, $13, $00,
-				;         $20, $08, $14, $00,
-				;         $20, $10, $15, $00,
-				;         $20, $18, $16, $00,
-				;         $20, $20, $17, $00,
-				;         $20, $28, $18, $05,
-				;         $28, $10, $19, $00,
-				;         $28, $18, $1A, $00,
-				;         $28, $20, $1B, $05,
-				;         $28, $28, $1C, $05
-				; $5784 - $1A,
-				;         $00, $28, $1D, $01, 
-				;         $08, $08, $1E, $01, 
-				;         $08, $10, $1F, $04, 
-				;         $08, $18, $20, $04, 
-				;         $08, $20, $21, $04, 
-				;         $08, $28, $22, $01, 
-				;         $10, $00, $23, $01, 
-				;         $10, $08, $24, $04, 
-				;         $10, $10, $25, $04, 
-				;         $10, $18, $26, $01, 
-				;         $10, $20, $27, $01, 
-				;         $10, $28, $28, $01, 
-				;         $18, $08, $29, $00, 
-				;         $18, $10, $2A, $00, 
-				;         $18, $18, $2B, $00, 
-				;         $18, $20, $2C, $00, 
-				;         $18, $28, $2D, $01, 
-				;         $20, $08, $2E, $00, 
-				;         $20, $10, $2F, $00, 
-				;         $20, $18, $30, $00, 
-				;         $20, $20, $31, $00, 
-				;         $20, $28, $32, $05, 
-				;         $28, $10, $33, $00, 
-				;         $28, $18, $34, $00, 
-				;         $28, $20, $35, $05, 
-				;         $28, $28, $36, $05
-				; ...
-				;
-				; $5975 - $79,$59,$7E,$59
-				; $5979 - $01,
-				;         $00,$00,$B4,$00
-				; $597E - $01,
-				;         $00,$00,$B5,$00
-				;
-				; $5983 - $87,$59,$B8,$59
-				; $5987 - $0C,
-				;         $00,$00,$98,$02,
-				;         $00,$08,$99,$02,
-				;         $00,$10,$9A,$02,
-				;         $00,$18,$9B,$02,
-				;         $08,$00,$9C,$02,
-				;         $08,$18,$9D,$02,
-				;         $10,$00,$9E,$02,
-				;         $10,$18,$9F,$02,
-				;         $18,$00,$A0,$02,
-				;         $18,$08,$A1,$02,
-				;         $18,$10,$A2,$02,
-				;         $18,$18,$A3,$02,
-				; $59B8 - $10,
-				;         $00,$00,$A4,$02,
-				;         $00,$08,$A5,$02,
-				;         $00,$10,$A6,$02,
-				;         $00,$18,$A7,$02,
-				;         $08,$00,$A8,$02,
-				;         $08,$08,$A9,$02,
-				;         $08,$10,$AA,$02,
-				;         $08,$18,$AB,$02,
-				;         $10,$00,$AC,$02,
-				;         $10,$08,$AD,$02,
-				;         $10,$10,$AE,$02,
-				;         $10,$18,$AF,$02,
-				;         $18,$00,$B0,$02,
-				;         $18,$08,$B1,$02,
-				;         $18,$10,$B2,$02,
-				;         $18,$18,$B3,$02,
-				
-				
-				
-				
-				
-APIFunction58:: ; 0258
+; @param	hl	Megasprite array pointer
+APISetMegaSprites:: ; 0258
 	jp $1186
 	
-; if [$C1C4] >= 16 then return
-; [$C1C4]++
-; [$C1CA + [$C1C4]*4] = edcb
-APIFunction59:: ; 025b
+; APIAddSprite -- 025B
+; 
+; Add an entry to the sprite table.
+; 
+; @param	e	Y coordinate
+; @param	d	X coordinate
+; @param	c	Megasprite index, or 0xFF for single tile
+; @param	b	Megasprite frame index, or tile number
+APIAddSprite:: ; 025b
 	jp $118f
 	
-; identical jump ptr to Function59
-APIFunction5A:: ; 025e
+; APIAddSprite0 -- 025E
+; 
+; Add an entry to the sprite table.
+; 
+; @param	e	Y coordinate
+; @param	d	X coordinate
+; @param	c	Megasprite index, or 0xFF for single tile
+; @param	b	Megasprite frame index, or tile number
+APIAddSprite0:: ; 025e
 	jp $118f
 	
-	
+; APIDrawSprites -- 0261
 ; 
-; 
-; clears Shadow OAM?
-
-; $C000[0..$A0] = 0
-; if [$C1C4] != 0 then
-;     b = [$C1C4]
-;     [$C1C4] = 0
-;     di
-;     if [$C1C6] < $60 then:
-;         [rBankANum ($27FF)], [wBankANumBackup] = [$C21C]
-;         [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = [$C21D]
-;     else:
-;         [rBankBNum ($37FF)], [wBankBNumBackup] = [$C21C]
-;         [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$C21D]
-;     end
-;     [$C1C7] = $28
-;     
-;     hl = $C1CA
-;     de = $C000
-;     while(something):
-;         push bc, hl, de
-;         [$C1C8][0..2] = hl++++[0..2]
-;         if [hl] == $FF
-; ...
-APIFunction5B:: ; 0261 
+; Convert the sprite table to the OAM DMA buffer.
+APIDrawSprites:: ; 0261 
 	jp $11aa
 	
 ; APIPredef -- 0264
@@ -811,11 +744,11 @@ APIGetMiniGameBank0:: ; 02ac
 APICopyFar:: ; 02af
 	jp $3f60
 	
-; [$C212] = max(a, [$C20F] - 1) % ([$C20E] * [$C20D])
-; [$C215] = max(a, [$C20F] - 1) % ([$C20E] * [$C20D])
-; [$C21B] = (max(a, [$C20F] - 1) / ([$C20E] * [$C20D])) / [$C210]
-; [$C214] = (max(a, [$C20F] - 1) / ([$C20E] * [$C20D])) % [$C210]
-; [$C216] = (max(a, [$C20F] - 1) / ([$C20E] * [$C20D])) % [$C210]
+; [$C212] = max(a, [$C20F] - 1) / ([$C20E] * [$C20D])
+; [$C215] = max(a, [$C20F] - 1) / ([$C20E] * [$C20D])
+; [$C21B] = (max(a, [$C20F] - 1) % ([$C20E] * [$C20D])) % [$C210]
+; [$C214] = (max(a, [$C20F] - 1) % ([$C20E] * [$C20D])) / [$C210]
+; [$C216] = (max(a, [$C20F] - 1) % ([$C20E] * [$C20D])) / [$C210]
 APIFunction76:: ; 02b2
 	jp $318a
 
