@@ -278,7 +278,7 @@ GameInfo:
 BeginMenu:
     ld a, $FF
     ld [$D07F], a
-    ld a, 2
+    ld a, 3
     ld c, a
     ld hl, .Options
     call APIDoMenu
@@ -304,11 +304,13 @@ BeginMenu:
 	; $4CAF, $4CB3, $4CF5
 	dw .Start
 	dw GameInfo
+	dw DoTextThing
 	;dw .DeleteSaveData
     
 .Options
     db "Start<NULL>"
     db "Info<NULL>"
+    db "Text<NULL>"
     ;db "Del. Save<NULL>"
 	
 GameInfoData:
@@ -353,7 +355,54 @@ GameInfoData:
 	db "to write lol<NULL>"
 
 	
+DoTextThing:
+	ld a, $00
+    ld de, TextBoxes
+    call APITextBox
+	ld hl, .text
+	call APIScrollText
+	;call APIScrollText
+	;ld bc, 0
+	;call APIDrawString
+.loop
+    call APIJoypadFrameCount
+    call APIScrollText
+    call APIFunction5B
+    call APIApplyAllPalettes
+    
+	push af
+    call DelayFrame
+    pop af
+    cp $ff
+    jr nz, .loop
+
+
+
+
+	jp BeginMenu
+.text
+	db "teeeeext this<LINE>"
+	db "is text awawawa<CLEAR>"
+	db "how about looooooooooooooooots of text?<CLEAR>"
+	db "i dunno what else<LINE>"
+	db "to write lol<NULL>"
 	
+TextBoxes:
+	db 0,0, 18,5, 0, 0,0,0
+	
+	
+DelayFrame:
+    halt
+    nop
+
+.loop
+    ldh a, [hFF8A]
+    and a
+    jr z, .loop
+
+    xor a
+    ldh [hFF8A], a
+    ret
 	
 
 include "include/footer.asm"

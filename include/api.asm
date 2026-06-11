@@ -9,248 +9,7 @@ include "include/api/oam.asm"
 include "include/api/video.asm"
 include "include/api/stubbed.asm"
 include "include/api/filesystem.asm"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-; ----- Text functions -----
-
-
-
-
-; [$C1AF] = a
-; [$C1C2] = 0
-; [$C1C0] = 0
-; [$C1C1] = 0
-; [$C219][0..2] = 0
-; hl = $C1B5
-; [hl][0..2] = $9800
-; a = [$FF4F] & %0000_0001 ; vram bank
-; push af
-; [$FF4F] = [$C1AF]
-; [$C1A3] = [$C1AF] ? 7 | %0000_1000 : 7
-; [$C1B0] = [$C1AF] ? 0 | %0000_1000 : 0
-; [$C1B1] = [$C1AF] ? 1 | %0000_1000 : 1
-; [$C1B2] = [$C1AF] ? 2 | %0000_1000 : 2
-; [$C1B7] = [$C1AF] ? 0 | %0000_1000 : 0
-; hl = $4EE0
-; de = $97E0 ; GFX tile $17E
-; bc = $0020 ; 2 tiles
-; call APICopyVRAM
-; [$C1BF] = 0
-; pop af
-; [$FF4F] = a
-; return
-
-; APILoadDakutenGFX -- 01D4
-; 
-; Loads GFX for the " ﾞ" and " ﾟ" characters into tiles $7E and $7F of the given VRAM bank
-; 
-; @param	a	VRAM bank to load graphics into.
-APILoadDakutenGFX::
-	jp $269c
-
-; $C1C0[0..2] = de
-APIFunction2D:: ; 01d7
-	jp $271c
-
-; $C219[0..2] = de 
-APIFunction2E:: ; 01da
-	jp $2723
-
-; $C1AB[0..2] = de 
-APIFunction2F:: ; 01dd
-	jp $272a
-
-; push [$FF4F] & %0000_0001
-; [$FF4F] = [$C1AF]
-; de = $96C0 ; GFX tile $16C
-; bc = $120  ; 18 tiles
-; call APICopyVRAMFar
-; a = [$FF9D]
-; de = $8760 ; GFX tile $076
-; bc = $00A0 ; 10 tiles
-; call APICopyVRAMFar
-; pop [$FF4F]
-; return
-APIFunction30:: ; 01e0
-	jp $2731
-
-; hl = de + (a*8)
-; [$FF9E] = c
-; a = [hl++]
-; b = a
-; [$C1A4] = ++a
-; a = [hl++]
-; c = a
-; [$C1A7] = ++++a
-; push hl
-; call APIFunction43
-; de = hl + $C1B5[0..2]
-; pop hl
-; c = [$FF9E]
-; [$C1A8] = [hl++]
-; a = [hl++]
-; if !a
-; 	a = c
-; endif
-; [$C1A9] = a
-; [$C1AA] = [hl++]
-; [$C1A5][0..2] = de
-; hl = de
-; return [$C1AA]?
-APIFunction31:: ; 01e3
-	jp $2753
-	
-; APITextBox -- 01E6
-; 
-; Clears a region of the screen, and designates 
-; that region as the active Text Box.
-; 
-; @param	de	pointer to table of 4-byte (x,y,w,h) entries
-; @param	a	table index
-; @param	c	? (goes to $FF9E)
-APITextBox::
-	jp $2799
-	
-; APIScrollText -- 01E9
-; 
-; ? (untested)
-; 
-; @param	hl	string pointer
-APIScrollText::
-	jp $27aa
-	
-	
-
-APIFunction34:: ; 01ec
-	jp $27c1
-	
-; APIDrawString -- 01EF
-; 
-; Prints a string to the screen instantly (no scrolling)
-; Position is offset from last text box drawn with APITextBox [01E6]
-; 
-; @param	hl	string pointer
-; @param	b	x offset from text box
-; @param	c	y offset from text box
-; 
-; @see		APITextBox
-APIDrawString::
-	jp $28be
-	
-	
-APIFunction36:: ; 01f2
-	jp $28e3
-APIFunction37:: ; 01f5
-	jp $2945
-APIFunction38:: ; 01f8
-	jp $294e
-	
-	
-	
-APIFunction39:: ; 01fb
-	jp $2bfe
-APIFunction3A:: ; 01fe
-	jp $2d46
-APIFunction3B:: ; 0201
-	jp $2d53
-APIFunction3C:: ; 0204
-	jp $2dc3
-APIFunction3D:: ; 0207
-	jp $2dd0
-APIFunction3E:: ; 020a
-	jp $2de7
-APIFunction3F:: ; 020d
-	jp $2e15
-APIFunction40:: ; 0210
-	jp $2ee9
-APIFunction41:: ; 0213
-	jp $2efa
-APIFunction42:: ; 0216
-	jp $2f1c
-APIFunction43:: ; 0219
-	jp $2fe0
-APIFunction44:: ; 021c
-	jp $3031
-	
-	
-; push af
-; push bc
-; push de
-; push hl
-; call APIFunction3B
-; hl = $C20A[0..2]
-; e = ([$C20E] * [$C212]) * [$C210]
-; a = 0
-; while(True) {
-; 	push af
-; 	if a < e
-; 		do {
-; 			while (a = [hl++]) != 0 {}
-; 			a = hl[-2]
-; 		} while (a == 2)
-; 		pop af
-; 		a++
-; 		continue
-; 	else
-; 		pop af
-; 		push [$C1BD]
-; 		[$C1BD] = [$C20E]
-; 		d = 0
-; 		push [$C1BD]
-; 		push de
-; 		e = ([$C212] * (([$C20E] - [$C1BD]) <<c 1) + (([$C20E] - [$C1BD]) <<c 1)) >> 1
-; 		
-; 		
-; 		
-; 	endif
-; }
-APIFunction45:: ; 021f
-	jp $30bc
-	
-	
-; pop hl
-; pop de
-; pop bc
-; pop af
-; ret
-
-; APIPopReturn -- 0222
-; 
-; Pops all registers and returns.
-; You probably want to `jp` to this!
-; 
-; Registers are popped in the order of hl, de, bc, af.
-; So, to use this, you'd want to start your function with:
-; ```
-; push af
-; push bc
-; push de
-; push hl
-; ```
-; and end it with:
-; ```
-; jp APIPopReturn
-; ```
-APIPopReturn:: ; 0222
-	jp $3185
-
-
-
-
-
+include "include/api/text.asm"
 include "include/api/math.asm"
 include "include/api/audio.asm"
 
@@ -388,7 +147,9 @@ APIFunction5A:: ; 025e
 	
 ; 
 ; 
-; clears Shadow OAM?
+; clears Shadow OAM....
+; 
+; update sprite engine??? maybe????
 
 ; $C000[0..$A0] = 0
 ; if [$C1C4] != 0 then
@@ -561,8 +322,22 @@ APIFunction68:: ; 0288
 	jp $1689
 APIFunction69:: ; 028b
 	jp $169d
+	
+; fills 50 (0x32) bytes from wC700 with 00
 APIFunction6A:: ; 028e
 	jp $16b1
+	
+; di
+; [$C63A] = a
+; push de
+; de = $C649
+; call Function1783 ; back up bank A to de, swap bank A to 0x16
+; pop de
+; call 16:4312
+; de = $C649
+; call Function179F ; restore bank A from de
+; ei
+; ret
 APIFunction6B:: ; 0291
 	jp $16bf
 APIFunction6C:: ; 0294
@@ -662,11 +437,14 @@ APIFindAppendMiniGames:: ; 02a9
 	jp $3f4c
 
 ; Calls APIFunction70's 7th function (10:545B)
+; 
+; @return	d	Bank ROM/Flash select for this minigame
+; @return	e	Bank number for this minigame
 APIGetMiniGameBankDuplicate:: ; 02ac
 	jp $3f55
 	
 ; Calls APIFunction70's 8th function (10:5472)
-APIFunction75:: ; 02af
+APIFarCopy:: ; 02af
 	jp $3f60
 	
 APIFunction76:: ; 02b2
