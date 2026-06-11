@@ -1,7 +1,7 @@
 	charmap "<NULL>",  $00
 	charmap "<LINE>",  $01
 	charmap "<COLOR>", $02
-	charmap "<FUNC>",  $03
+	charmap "<PARAM>", $03
 	charmap "<CLEAR>", $04
 	charmap "<WAIT>",  $0F
 	
@@ -53,7 +53,7 @@
 	charmap "~", $3D
 	charmap "、", $3E
 	charmap "。", $3F
-	charmap " ", $40
+	;charmap " ", $40
 	
 	charmap "A", $41
 	charmap "B", $42
@@ -87,7 +87,7 @@
 	charmap "^", $5D
 	charmap "_", $5E
 	charmap "’", $5F
-	charmap " ", $60
+	;charmap " ", $60
 	
 	charmap "a", $61
 	charmap "b", $62
@@ -245,8 +245,8 @@
 	charmap "☺", $FB
 	charmap "★", $FC
 	charmap "❤", $FD
-	charmap " ﾞ", $FE
-	charmap " ﾟ", $FF
+	charmap "ﾞ", $FE
+	charmap "ﾟ", $FF
 	
 	charmap "ガ", $FE, $CA
 	charmap "ギ", $FE, $CB

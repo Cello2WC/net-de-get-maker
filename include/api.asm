@@ -53,23 +53,33 @@ include "include/api/filesystem.asm"
 ; [$FF4F] = a
 ; return
 
-; APILoadDakutenGFX -- 01D4
+; APIInitTextEngine -- 01D4
 ; 
-; Loads GFX for the " ﾞ" and " ﾟ" characters into tiles $7E and $7F of the given VRAM bank
+; Initialize the text engine with default values.
 ; 
 ; @param	a	VRAM bank to load graphics into.
-APILoadDakutenGFX::
+APIInitTextEngine::
 	jp $269c
 
-; $C1C0[0..2] = de
-APIFunction2D:: ; 01d7
+; APISetParamStringFunc -- 01D7
+; 
+; Sets the text engine's parameter-string function to `de`.
+; The parameter-string function receives a parameter in `a`,
+; and should call APISetTextPointer with the appropriate string
+; 
+; @param	de	Function pointer
+APISetParamStringFunc:: ; 01d7
 	jp $271c
 
 ; $C219[0..2] = de 
 APIFunction2E:: ; 01da
 	jp $2723
 
-; $C1AB[0..2] = de 
+; APISetTextPointer -- 01DD
+; 
+; Set the text engine's text pointer to `de`.
+; 
+; @param	de	String pointer
 APIFunction2F:: ; 01dd
 	jp $272a
 
@@ -78,6 +88,8 @@ APIFunction2F:: ; 01dd
 ; Load menu tiles from address `hl` in bank [$C21C][0..2].
 ; 
 ; @param	hl	Source
+; @param	$C21C	ROM/flash bank number
+; @param	$C21D	$00 for ROM, $08 for flash
 APILoadCustomMenuGFX:: ; 01e0
 	jp $2731
 
@@ -118,15 +130,20 @@ APIFunction31:: ; 01e3
 APITextBox::
 	jp $2799
 	
-; APIScrollText -- 01E9
+; APISetDialog -- 01E9
 ; 
-; ? (untested)
+; Set the current dialog message to `hl`.
 ; 
 ; @param	hl	string pointer
-APIScrollText::
+APISetDialog::
 	jp $27aa
 	
-APIFunction34:: ; 01ec
+; APIDialogLoop -- 01EC
+; 
+; Non-blocking loop function to update the current dialog.
+; 
+; @return	$C1B8	Machine state, from [NO_DIALOG, WRITING, CLEAR, NULL, WAIT]
+APIDialogLoop:: ; 01ec
 	jp $27c1
 	
 ; APIDrawString -- 01EF
@@ -142,12 +159,30 @@ APIFunction34:: ; 01ec
 APIDrawString::
 	jp $28be
 	
-	
-APIFunction36:: ; 01f2
+; APIInitMenu -- 01F2
+; 
+; Initialize the menu engine using the current text box.
+; 
+; @param	hl	Pointer to list of null-terminated options
+; @param	b	Width of each option
+; @param	d	Total number of options
+; @param	c	Rows per page
+; @param	e	Options per row
+APIInitMenu:: ; 01f2
 	jp $28e3
-APIFunction37:: ; 01f5
+
+; APIDrawMenu -- 01F5
+; 
+; Draw the current menu page.
+APIDrawMenu:: ; 01f5
 	jp $2945
-APIFunction38:: ; 01f8
+
+; APIMenuLoop -- 01F8
+; 
+; Non-blocking function to handle input for the current menu.
+; 
+; @return	$C214	Selected option, or $FF if none.
+APIMenuLoop:: ; 01f8
 	jp $294e
 	
 	
@@ -156,8 +191,13 @@ APIFunction39:: ; 01fb
 	jp $2bfe
 APIFunction3A:: ; 01fe
 	jp $2d46
-APIFunction3B:: ; 0201
+
+; APITextClear -- 0201
+; 
+; Clear the current text box.
+APITextClear:: ; 0201
 	jp $2d53
+
 APIFunction3C:: ; 0204
 	jp $2dc3
 APIFunction3D:: ; 0207
@@ -166,14 +206,33 @@ APIFunction3E:: ; 020a
 	jp $2de7
 APIFunction3F:: ; 020d
 	jp $2e15
-APIFunction40:: ; 0210
+
+; APITextSpace -- 0210
+; 
+; Advance the text engine's cursor without writing a character.
+APITextSpace:: ; 0210
 	jp $2ee9
-APIFunction41:: ; 0213
+
+; APITextLine -- 0213
+; 
+; Return the text engine's cursor to the beginning of the next line.
+APITextLine:: ; 0213
 	jp $2efa
+
 APIFunction42:: ; 0216
 	jp $2f1c
-APIFunction43:: ; 0219
+
+; APITileMapOffset -- 0219
+; 
+; Return a tilemap/attribute map offset in `hl`.
+; 
+; @param	b	X coordinate
+; @param	c	Y coordinate
+; 
+; @return	hl	Tilemap offset
+APITileMapOffset:: ; 0219
 	jp $2fe0
+
 APIFunction44:: ; 021c
 	jp $3031
 	
