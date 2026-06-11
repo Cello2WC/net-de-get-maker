@@ -313,18 +313,43 @@ APIFunction65:: ; 027f
 	
 	
 	
-	
+; delete save data??? maybe???
+; 
+; im guessing because it can print the following text:
+; セ—ブテ—タを すべてさくじょします<LINE>
+; ついかとうろくした いくつかの<LINE>
+; ミニゲ—ムや ついかド—タも きえて<LINE>
+; しまいます よろしいですか?<NULL>
+
 APIFunction66:: ; 0282
 	jp $1663
 APIFunction67:: ; 0285
 	jp $1675
-APIFunction68:: ; 0288
+	
+; APICopySYS0 -- 0288
+; 
+; Open SYS0
+; 
+; if the file exists, copy its data to wSYS0Copy ($C700),
+; and return 0 in `a`.
+; 
+; else, call APIClearSYS0 and return 1 in `a`.
+APIOpenSYS0:: ; 0288
 	jp $1689
-APIFunction69:: ; 028b
+	
+; APISaveSYS0 -- 028B
+; 
+; Open SYS0
+; 
+; if the file exists, copy 0x32 bytes from wSYS0Copy ($C700) 
+; to SYS0, close the file, and return 0 in `a`
+; 
+; else, return 1 in `a`
+APISaveSYS0:: ; 028b
 	jp $169d
 	
-; fills 50 (0x32) bytes from wC700 with 00
-APIFunction6A:: ; 028e
+; fills 50 (0x32) bytes from wSYS0Copy ($C700) with 00
+APIClearSYS0:: ; 028e
 	jp $16b1
 	
 ; di

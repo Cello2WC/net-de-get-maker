@@ -33,7 +33,7 @@
 ; loads GFX for the " ﾞ" and " ﾟ" characters 
 ; into tiles $7E and $7F of the given VRAM bank
 ; 
-; @param	a	VRAM bank to load graphics into.
+; @param	a	VRAM bank to load text graphics into.
 APIInitTextEngine:: ; 01d4
 	jp $269c
 
@@ -53,7 +53,7 @@ APISetTextCallbackAddress:: ; 01d7
 ; 
 ; Sets `C219` & `C21A` to `de`.
 ; 
-; @param	de	Unknown pointer
+; @param	de	Unknown callback address
 APIFunction2E:: ; 01da
 	jp $2723
 

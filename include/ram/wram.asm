@@ -157,7 +157,19 @@ wOpenFileData:: dw ; C677
 wOpenFileIndex:: db ; C679
 
 SECTION "WRAM Page 7", WRAM0[$C700]
-wC700:: ds 50
+wSYS0Copy::
+wSYS0TextSpeed:: db
+wSYS0Unknown1:: db
+wSYS0PasswordSaved:: db
+wSYS0CursorMode:: db
+wSYS0SoundMode:: db
+wSYS0HiddenLevel:: db
+wSYS0PlayerCharacter:: db
+wSYS0Unknown2:: db
+wSYS0RoomLevel:: db
+wSYS0Unknown3:: dw
+wSYS0SavedPassword:: ds 15
+wSYS0Unknown4:: ds 22
 
 
 SECTION "WRAM Page 8", WRAM0[$C800]
