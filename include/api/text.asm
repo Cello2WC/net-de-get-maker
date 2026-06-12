@@ -1,8 +1,5 @@
 ; ----- Text functions -----
 
-
-
-
 ; [$C1AF] = a
 ; [$C1C2] = 0
 ; [$C1C0] = 0
@@ -116,8 +113,6 @@ APIFunction30:: ; 01e0
 ; @param	c	? (goes to $FF9E (hBankSelect?)) 
 APIText:: ; 01e3
 	jp $2753
-
-	
 	
 ; APITextBox -- 01E6
 ; 
@@ -138,15 +133,19 @@ APITextBox:: ; 01e6
 	
 ; APIScrollText -- 01E9
 ; 
-; ? (untested)
+; Sets the current scrolling text to that pointed to by `hl`.
+; 
+; You can know that the text is done being read
+; when wTextCond is equal to 0.
 ; 
 ; @param	hl	string pointer
-APIScrollText:: ; 01e9
+APIScrollText::
 	jp $27aa
 	
-	
-
-APIUpdateTextEngine:: ; 01ec
+; APIUpdateTextEngine -- 01EC
+; 
+; To be called once per frame in order to display scrolling text.
+APIUpdateTextEngine::
 	jp $27c1
 	
 ; APIDrawString -- 01EF

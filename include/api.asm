@@ -313,7 +313,7 @@ APIFunction65:: ; 027f
 	
 	
 	
-; delete save data??? maybe???
+; ask to delete save data??? maybe???
 ; 
 ; im guessing because it can print the following text:
 ; セ—ブテ—タを すべてさくじょします<LINE>
@@ -323,10 +323,27 @@ APIFunction65:: ; 027f
 
 APIFunction66:: ; 0282
 	jp $1663
+	
+	
+; Initialize filesystem?
+; Delete save data?
+; 
+; destroy filesystem checksum
+; validate filesystem
+; open SYS0
+; wC638 = c from APIOpenFile
+; return 2 in a if file not exists
+; copy 50 bytes from $D000 to [de after APIClearSYS0]
+; close file
+; 42bd
+; open SYS1
+; initialize the data in SYS1? (00:3E00)
+; does something with flash memory....
+; return
 APIFunction67:: ; 0285
 	jp $1675
 	
-; APICopySYS0 -- 0288
+; APIOpenSYS0 -- 0288
 ; 
 ; Open SYS0
 ; 
@@ -334,10 +351,12 @@ APIFunction67:: ; 0285
 ; and return 0 in `a`.
 ; 
 ; else, call APIClearSYS0 and return 1 in `a`.
+; 
+; @return	a	1 if SYS0 could not be created, else 0
 APIOpenSYS0:: ; 0288
 	jp $1689
 	
-; APISaveSYS0 -- 028B
+; APICloseSYS0 -- 028B
 ; 
 ; Open SYS0
 ; 
@@ -345,7 +364,9 @@ APIOpenSYS0:: ; 0288
 ; to SYS0, close the file, and return 0 in `a`
 ; 
 ; else, return 1 in `a`
-APISaveSYS0:: ; 028b
+; 
+; @return	a	1 if SYS0 could not be created, else 0
+APICloseSYS0:: ; 028b
 	jp $169d
 	
 ; fills 50 (0x32) bytes from wSYS0Copy ($C700) with 00

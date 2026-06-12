@@ -356,6 +356,28 @@ GameInfoData:
 
 	
 DoTextThing:
+	call FadeOut
+
+
+	ld hl, Palettes
+    ld de, wBGPals1
+    ld bc, 8*4*2
+    call APICopy
+    
+    ld a, 1
+    ld [wPalUpdate], a
+    
+ ;   call APIFunction5B
+   ; call APIApplyAllPalettes
+    
+    call APIDisableLCD
+    call APIUpdatePalettesVBlank
+   ; call DrawCursor
+    ;call DrawData
+    call APIEnableLCD
+
+
+
 	ld a, $00
     ld de, TextBoxes
     call APITextBox
@@ -366,14 +388,15 @@ DoTextThing:
 	;call APIDrawString
 .loop
     call APIJoypadFrameCount
-    call APIScrollText
-    call APIFunction5B
+    call APIUpdateTextEngine
+;    call APIFunction5B
     call APIApplyAllPalettes
     
 	push af
     call DelayFrame
     pop af
-    cp $ff
+    ld a, [wTextCond]
+    and a
     jr nz, .loop
 
 
@@ -382,13 +405,13 @@ DoTextThing:
 	jp BeginMenu
 .text
 	db "teeeeext this<LINE>"
-	db "is text awawawa<CLEAR>"
-	db "how about looooooooooooooooots of text?<CLEAR>"
+	db "is text awawawa<LINE>"
+	db "how about looooooooooooooooots of text?<WAIT><CLEAR>"
 	db "i dunno what else<LINE>"
-	db "to write lol<NULL>"
+	db "to write lol<WAIT><NULL>"
 	
 TextBoxes:
-	db 0,0, 18,5, 0, 0,0,0
+	db 0,0, 18,2, 1, 0,0,0
 	
 	
 DelayFrame:
@@ -403,6 +426,31 @@ DelayFrame:
     xor a
     ldh [hFF8A], a
     ret
+    
+MACRO RGB
+rept _NARG / 3
+    dw palred (\1) + palgreen (\2) + palblue (\3)
+    shift 3
+endr
+ENDM
+
+DEF palred   EQUS "(1 << 0) *"
+DEF palgreen EQUS "(1 << 5) *"
+DEF palblue  EQUS "(1 << 10) *"
+
+MACRO RGB24
+    dw palred (\1 >> 3) + palgreen (\2 >> 3) + palblue (\3 >> 3)
+ENDM
+
+Palettes:
+BGPals:
+REPT 16
+;white on black
+    RGB24 $FF, $FF, $FF
+    RGB24 $AA, $AA, $AA
+    RGB24 $55, $55, $55
+    RGB24 $00, $00, $00
+ENDR
 	
 
 include "include/footer.asm"
