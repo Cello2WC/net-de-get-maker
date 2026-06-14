@@ -37,7 +37,7 @@ wC1A1: db ; C1A1
 wC1A2: db ; C1A2
 
 
-wTextAttribute: db ; C1A3
+wDefaultTextAttribute: db ; C1A3
 wTextX: db ; C1A4
 wC1A5: dw ; C1A5..6 ; output of APIFunction43, set to hl + wC1B5[0..2]
 wTextY: db ; C1A7
@@ -48,9 +48,7 @@ wNextCharPointer: dw ; C1AB..C
 wNextCharPointerBackup: dw ; C1AD..E
 wTextVRAMBank: db ; C1AF
 
-wC1B0: db ; C1B0
-wC1B1: db ; C1B1
-wC1B2: db ; C1B2
+wTextAttributeTable: ds 3 ; C1B0..2
 wC1B3: db ; C1B3
 wC1B4: db ; C1B4
 wC1B5: dw ; C1B5..6
@@ -62,9 +60,9 @@ wC1BB: db ; C1BB
 wC1BC: db ; C1BC
 wC1BD: db ; C1BD
 wC1BE: db ; C1BE
-wC1BF: db ; C1BF
+wTextAttribute: db ; C1BF
 
-wTextCallbackAddress: dw ; C1C0..1
+wTextFunctionPointer: dw ; C1C0..1
 wC1C2: db ; C1C2
 wC1C3: db ; C1C3
 wC1C4: db ; C1C4
@@ -147,7 +145,11 @@ wC66D: db
 wC66E: db
 wC66F: db
 wC670: db
-wC671: db
+
+; 0x00 - Game over, award points
+; 0x10 - Backed out, no game over screen
+wGameReturnState: db ; C671
+
 wC672: db
 wC673: db
 wC674: db

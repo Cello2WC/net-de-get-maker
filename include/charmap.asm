@@ -52,6 +52,7 @@
 	charmap "—", $3C
 	charmap "~", $3D
 	charmap "、", $3E
+	charmap ",", $3E
 	charmap "。", $3F
 	charmap " ", $40
 	

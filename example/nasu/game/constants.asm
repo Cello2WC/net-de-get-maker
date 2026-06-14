@@ -1,5 +1,5 @@
 INCLUDE "game/macros.asm"
-INCLUDE "game/constants/hardware_constants.asm"
+;INCLUDE "game/constants/hardware_constants.asm"
 INCLUDE "game/constants/wram_constants.asm"
 INCLUDE "game/charmap.asm"
 

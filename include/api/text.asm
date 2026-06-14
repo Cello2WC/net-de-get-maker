@@ -36,12 +36,12 @@ APIInitTextEngine:: ; 01d4
 
 ; $C1C0[0..2] = de
 
-; APISetTextCallbackAddress -- 01D7
+; APISetTextFunction -- 01D7
 ; 
-; Sets `wTextCallbackAddress` to `de`.
+; Sets `wTextFunctionPointer` to `de`.
 ; 
-; @param	de	Callback address
-APISetTextCallbackAddress:: ; 01d7
+; @param	de	Function pointer
+APISetTextFunction:: ; 01d7
 	jp $271c
 
 ; $C219[0..2] = de 
@@ -103,7 +103,7 @@ APIFunction30:: ; 01e0
 ; return [$C1AA]?
 ; 
 
-; APIText -- 01E3
+; APITextRegion -- 01E3
 ; 
 ; Designates a region of the screen 
 ; as the active Text Region.
@@ -111,7 +111,7 @@ APIFunction30:: ; 01e0
 ; @param	de	pointer to table of 8-byte (x,y,w,h,border,?,?,?) entries
 ; @param	a	table index
 ; @param	c	? (goes to $FF9E (hBankSelect?)) 
-APIText:: ; 01e3
+APITextRegion:: ; 01e3
 	jp $2753
 	
 ; APITextBox -- 01E6
@@ -120,14 +120,14 @@ APIText:: ; 01e3
 ; as the active Text Region,
 ; and draws a box around that region.
 ; 
-; Calls APIText as part of its operation (to designate the region)
+; Calls APITextRegion as part of its operation (to designate the region)
 ; Calls either APIFunction39 or APIFunction3B as part of its operation (to draw the border)
 ; 
 ; @param	de	pointer to table of 8-byte (x,y,w,h,border,?,?,?) entries
 ; @param	a	table index
 ; @param	c	? (goes to $FF9E (hBankSelect?)) 
 ; 
-; @see		APIText
+; @see		APITextRegion
 APITextBox:: ; 01e6
 	jp $2799
 	
@@ -151,7 +151,7 @@ APIUpdateTextEngine::
 ; APIDrawString -- 01EF
 ; 
 ; Prints a string to the screen instantly (no scrolling)
-; Position is offset from last text box drawn with APIText [01E3]
+; Position is offset from last text box drawn with APITextRegion [01E3]
 ; 
 ; @param	hl	string pointer
 ; @param	b	x offset from text box
@@ -170,12 +170,14 @@ APIMenuLoop:: ; 01f8
 	jp $294e
 	
 	
-	
+
 APIFunction39:: ; 01fb
 	jp $2bfe
 APIFunction3A:: ; 01fe
 	jp $2d46
-APIFunction3B:: ; 0201
+	
+
+APIClearTextField:: ; 0201
 	jp $2d53
 APIFunction3C:: ; 0204
 	jp $2dc3

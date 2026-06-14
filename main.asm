@@ -46,10 +46,11 @@ MinigameStart:
     
     
     call PrepareGameOver
-    call APIFunction5B
+    call APIUpdateSpriteEngine
     call ResetInterrupts
     xor a
     ldh [$FF07], a
+    ld [wGameReturnState], a
     call DisableFlash
 	ret
 
@@ -96,17 +97,6 @@ Function42AA:
 	ld hl, $60A0
 	ret
 	
-Function430B:
-	halt
-	nop
-.loop
-	ldh a, [$FF8A]
-	and a
-	jr z, .loop
-	xor a
-	ldh [$FF8A], a
-	ret
-	
 Function4957:
 	ld [$D006], a
 	ld a, 0
@@ -116,8 +106,8 @@ Function4957:
 	call APIPackAllPalettes
 .loop
 	call APIApplyAllPalettes
-	call APIFunction5B
-	call Function430B
+	call APIUpdateSpriteEngine
+	call DelayFrame
 	ld a, [wPalPackScale]
 	ld c, a
 	ld a, [$CF86]
@@ -293,7 +283,7 @@ BeginMenu:
     ret
 .backedOut
     ld a, $10
-    ld [$C671], a
+    ld [wGameReturnState], a
     
 	call ResetInterrupts
     
@@ -360,23 +350,28 @@ DoTextThing:
 
 
 	ld hl, Palettes
-    ld de, wBGPals1
-    ld bc, 8*4*2
-    call APICopy
-    
-    ld a, 1
-    ld [wPalUpdate], a
-    
- ;   call APIFunction5B
-   ; call APIApplyAllPalettes
+	xor a
+	ld c, 8
+.palloop
+	push bc
+	call APISetBGPal
+	pop bc
+	dec c
+	jr nz, .palloop
     
     call APIDisableLCD
     call APIUpdatePalettesVBlank
-   ; call DrawCursor
-    ;call DrawData
     call APIEnableLCD
+    
+    ;call APIInitTextEngine
 
-
+	ld a, $08
+	ld [wTextAttributeTable], a
+	inc a
+	ld [wTextAttributeTable+1], a
+	ld a, $68
+	ld [wTextAttributeTable+2], a
+	
 
 	ld a, $00
     ld de, TextBoxes
@@ -401,12 +396,13 @@ DoTextThing:
 
 
 
-
 	jp BeginMenu
 .text
-	db "teeeeext this<LINE>"
+	db "<CLEAR>teeeeext this<LINE>"
 	db "is text awawawa<LINE>"
 	db "how about looooooooooooooooots of text?<WAIT><CLEAR>"
+	db "how about <COLOR>",1,"RED<COLOR>",0,"<LINE>text?<WAIT><CLEAR>"
+	db "how about <COLOR>",2,"nwod<LINE>edispu<COLOR>",0," text?<WAIT><CLEAR>"
 	db "i dunno what else<LINE>"
 	db "to write lol<WAIT><NULL>"
 	
@@ -419,12 +415,12 @@ DelayFrame:
     nop
 
 .loop
-    ldh a, [hFF8A]
+    ldh a, [hVBlankFlag]
     and a
     jr z, .loop
 
     xor a
-    ldh [hFF8A], a
+    ldh [hVBlankFlag], a
     ret
     
 MACRO RGB
@@ -444,11 +440,26 @@ ENDM
 
 Palettes:
 BGPals:
-REPT 16
-;white on black
+REPT 2
+; white on black
     RGB24 $FF, $FF, $FF
     RGB24 $AA, $AA, $AA
     RGB24 $55, $55, $55
+    RGB24 $00, $00, $00
+    
+	RGB24 $FF, $00, $00
+    RGB24 $AA, $00, $00
+    RGB24 $55, $00, $00
+    RGB24 $00, $00, $00
+    
+	RGB24 $00, $FF, $00
+    RGB24 $00, $AA, $00
+    RGB24 $00, $55, $00
+    RGB24 $00, $00, $00
+    
+	RGB24 $00, $00, $FF
+    RGB24 $00, $00, $AA
+    RGB24 $00, $00, $55
     RGB24 $00, $00, $00
 ENDR
 	

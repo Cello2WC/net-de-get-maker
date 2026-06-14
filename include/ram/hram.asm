@@ -1,7 +1,7 @@
 SECTION "HRAM", HRAM
 hAPIOAMDMA:: ds 10 ; $FF80
 
-hFF8A:: db ; $FF8A
+hVBlankFlag:: db ; $FF8A
 hGlobalTimer:: db ; $FF8B: Incremented by APIJoypadFrameCount, read by APIRandom
 hFF8C:: db ; $FF8C
 hFF8D:: db ; $FF8D

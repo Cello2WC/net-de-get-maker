@@ -20,7 +20,7 @@ DEF MUSIC_2F EQU $002F ; Sliding Tile Puzzle     (15th in Box 1)
 
 DEF MUSIC_5A EQU $005A ; Password Entry
 DEF MUSIC_5B EQU $005B ; Panda's Room
-DEF MUSIC_5C EQU $005C ; used for predef 7 (bird's theme maybe?? i havent played that far lol)
+DEF MUSIC_5C EQU $005C ; Duck's Room
 DEF MUSIC_5D EQU $005D ; Game Instructions
 DEF MUSIC_5E EQU $005E ; groovy but kinda repetitive
 DEF MUSIC_5F EQU $005F ; Tanjyun Robo            (13th in Box 1)

@@ -172,7 +172,7 @@ APIFunction5A:: ; 025e
 ;         [$C1C8][0..2] = hl++++[0..2]
 ;         if [hl] == $FF
 ; ...
-APIFunction5B:: ; 0261 
+APIUpdateSpriteEngine:: ; 0261 
 	jp $11aa
 	
 ; APIPredef -- 0264

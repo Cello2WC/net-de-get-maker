@@ -4,11 +4,12 @@ DEF decoord EQUS "coord de,"
 
 MACRO coord
 ; register, x, y[, origin]
-	if _NARG < 4
-	ld \1, (\3) * SCR_WIDTH + (\2) + wTileMap
-	else
-	ld \1, (\3) * SCR_WIDTH + (\2) + \4
-	endc
+;	if _NARG < 4
+;	ld \1, (\3) * SCR_WIDTH + (\2) + $9800
+;	else
+;	ld \1, (\3) * SCR_WIDTH + (\2) + \4
+;	endc
+	bgcoord \1, \2, \3
 ENDM
 
 DEF hlbgcoord EQUS "bgcoord hl,"
