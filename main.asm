@@ -46,7 +46,6 @@ MinigameStart:
     
     
     call PrepareGameOver
-    call APIUpdateSpriteEngine
     call ResetInterrupts
     xor a
     ldh [$FF07], a
@@ -106,7 +105,7 @@ Function4957:
 	call APIPackAllPalettes
 .loop
 	call APIApplyAllPalettes
-	call APIUpdateSpriteEngine
+	call APIDrawSprites
 	call DelayFrame
 	ld a, [wPalPackScale]
 	ld c, a
@@ -375,16 +374,12 @@ DoTextThing:
 
 	ld a, $00
     ld de, TextBoxes
-    call APITextBox
+    call APISetTextBox
 	ld hl, .text
-	call APIScrollText
-	;call APIScrollText
-	;ld bc, 0
-	;call APIDrawString
+	call APISetDialog
 .loop
     call APIJoypadFrameCount
-    call APIUpdateTextEngine
-;    call APIFunction5B
+    call APIDialogLoop
     call APIApplyAllPalettes
     
 	push af

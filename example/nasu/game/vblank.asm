@@ -1,7 +1,7 @@
 VBlank:
     call hAPIOAMDMA
     call APIJoypadFrameCount
-    call APIUpdateSpriteEngine
+    call APIDrawSprites
     call UpdateSFX
     call UpdateMusic
     ret

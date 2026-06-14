@@ -147,7 +147,7 @@ PrepareGameOver:
 	ld c, 10
 	call APIWordDivide
 	
-	ld a, h
+	ld a, l
 	ld [wReactPointReward], a ; reaction point reward
 	xor a
 	ld [wSmartPointReward], a ; smarts point reward
@@ -168,7 +168,7 @@ WaitFade:
 	call APIPackAllPalettes
 .loop
 	call APIApplyAllPalettes
-	call APIUpdateSpriteEngine
+	call APIDrawSprites
 	call WaitOneFrame
     ld a, [wPalPackScale]
     or a
