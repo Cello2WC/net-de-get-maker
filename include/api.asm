@@ -9,170 +9,393 @@ include "include/api/oam.asm"
 include "include/api/video.asm"
 include "include/api/stubbed.asm"
 include "include/api/filesystem.asm"
-include "include/api/text.asm"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+; ----- Text functions -----
+
+
+
+
+; [$C1AF] = a
+; [$C1C2] = 0
+; [$C1C0] = 0
+; [$C1C1] = 0
+; [$C219][0..2] = 0
+; hl = $C1B5
+; [hl][0..2] = $9800
+; a = [$FF4F] & %0000_0001 ; vram bank
+; push af
+; [$FF4F] = [$C1AF]
+; [$C1A3] = [$C1AF] ? 7 | %0000_1000 : 7
+; [$C1B0] = [$C1AF] ? 0 | %0000_1000 : 0
+; [$C1B1] = [$C1AF] ? 1 | %0000_1000 : 1
+; [$C1B2] = [$C1AF] ? 2 | %0000_1000 : 2
+; [$C1B7] = [$C1AF] ? 0 | %0000_1000 : 0
+; hl = $4EE0
+; de = $97E0 ; GFX tile $17E
+; bc = $0020 ; 2 tiles
+; call APICopyVRAM
+; [$C1BF] = 0
+; pop af
+; [$FF4F] = a
+; return
+
+; APIInitTextEngine -- 01D4
+; 
+; Initialize the text engine with default values.
+; 
+; @param	a	VRAM bank to load graphics into.
+APIInitTextEngine::
+	jp $269c
+
+; APISetParamStringFunc -- 01D7
+; 
+; Sets the text engine's parameter-string function to `de`.
+; The parameter-string function receives a parameter in `a`,
+; and should call APISetTextPointer with the appropriate string
+; 
+; @param	de	Function pointer
+APISetParamStringFunc:: ; 01d7
+	jp $271c
+
+; $C219[0..2] = de 
+APIFunction2E:: ; 01da
+	jp $2723
+
+; APISetTextPointer -- 01DD
+; 
+; Set the text engine's text pointer to `de`.
+; 
+; @param	de	String pointer
+APISetTextPointer:: ; 01dd
+	jp $272a
+
+; APILoadCustomMenuGFX -- 01e0
+; 
+; Load menu tiles from address `hl` in bank [$C21C][0..2].
+; 
+; @param	hl	Source
+; @param	$C21C	ROM/flash bank number
+; @param	$C21D	$00 for ROM, $08 for flash
+APILoadCustomMenuGFX:: ; 01e0
+	jp $2731
+
+; hl = de + (a*8)
+; [$FF9E] = c
+; a = [hl++]
+; b = a
+; [$C1A4] = ++a
+; a = [hl++]
+; c = a
+; [$C1A7] = ++++a
+; push hl
+; call APIFunction43
+; de = hl + $C1B5[0..2]
+; pop hl
+; c = [$FF9E]
+; [$C1A8] = [hl++]
+; a = [hl++]
+; if !a
+; 	a = c
+; endif
+; [$C1A9] = a
+; [$C1AA] = [hl++]
+; [$C1A5][0..2] = de
+; hl = de
+; return [$C1AA]?
+
+; APISetTextBox -- 01E3
+; 
+; Set the current text box region.
+; 
+; @param	de	Pointer to 8-byte entries (X,Y,C,L,T,0,0,0)
+; @param	a	Index into `de`
+; @param	c	Default height (if `H` is zero)
+; @param	X	X coordinate of left border
+; @param	Y	Y coordinate of top border
+; @param	C	Characters per line
+; @param	L	Lines per page
+; @param	T	Border type, from [NO_BORDER, NORMAL_SHADOW, FULL_SHADOW]
+APISetTextBox:: ; 01e3
+	jp $2753
+	
+; APIOpenTextBox -- 01E6
+; 
+; Set and clear the current text box.
+; 
+; @param	de	Pointer to 8-byte entries (X,Y,C,L,T,0,0,0)
+; @param	a	Index into `de`
+; @param	c	Default height (if `H` is zero)
+; 
+; @see	APISetTextBox
+APIOpenTextBox::
+	jp $2799
+	
+; APISetDialog -- 01E9
+; 
+; Set the current dialog message to `hl`.
+; 
+; @param	hl	string pointer
+APISetDialog::
+	jp $27aa
+	
+; APIDialogLoop -- 01EC
+; 
+; Non-blocking loop function to update the current dialog.
+; 
+; @return	$C1B8	Machine state, from [NO_DIALOG, WRITING, CLEAR, NULL, WAIT]
+APIDialogLoop:: ; 01ec
+	jp $27c1
+	
+; APIDrawString -- 01EF
+; 
+; Prints a string to the screen instantly (no scrolling)
+; Position is offset from last text box drawn with APITextBox [01E6]
+; 
+; @param	hl	string pointer
+; @param	b	x offset from text box
+; @param	c	y offset from text box
+; 
+; @see		APITextBox
+APIDrawString::
+	jp $28be
+	
+; APIInitMenu -- 01F2
+; 
+; Initialize the menu engine using the current text box.
+; 
+; @param	hl	Pointer to list of null-terminated options
+; @param	b	Width of each option
+; @param	c	Rows per page
+; @param	d	Total number of options
+; @param	e	Options per row
+APIInitMenu:: ; 01f2
+	jp $28e3
+
+; APIDrawMenu2 -- 01F5
+; 
+; Set [$C213] to 1 and draw the current menu page.
+APIDrawMenu2:: ; 01f5
+	jp $2945
+
+; APIMenuLoop -- 01F8
+; 
+; Non-blocking function to handle input for the current menu.
+; 
+; @return	$C214	Selected option, or $FF if none.
+APIMenuLoop:: ; 01f8
+	jp $294e
+	
+; APIDrawTextBox -- 01FB
+; 
+; Draw the current text box on screen.
+; 
+; @param	hl	Tilemap/attribute map pointer
+APIDrawTextBox:: ; 01fb
+	jp $2bfe
+
+; APIFillTextBox -- 01FE
+; 
+; Fill the current text box with tile number `a`.
+; 
+; @param	a	Tile number
+APIFillTextBox:: ; 01fe
+	jp $2d46
+
+; APITextClear -- 0201
+; 
+; Clear the current text box.
+APITextClear:: ; 0201
+	jp $2d53
+
+; a = 1 - (([$FF8B] / 4) % 4)
+APIFunction3C:: ; 0204
+	jp $2dc3
+
+; APIAddTextTriangleSprite -- 0207
+; 
+; Add a prompt triangle for the current text box to the sprite table.
+APIAddTextTriangleSprite:: ; 0207
+	jp $2dd0
+
+; APITextSpriteCoordinates -- 020A
+; 
+; Return the OAM coordinates for the bottom-right corner of the current text box.
+; 
+; @return	e	X coordinate
+; @return	d	Y coordinate
+APITextSpriteCoordinates:: ; 020a
+	jp $2de7
+
+; APIDrawNextChar -- 020D
+; 
+; Of the current dialog, draw a character or handle a control code.
+; If the character drawn is a dakuten or handakuten, repeat.
+APIDrawNextChar:: ; 020d
+	jp $2e15
+
+; APITextSpace -- 0210
+; 
+; Advance the text engine's cursor without writing a character.
+APITextSpace:: ; 0210
+	jp $2ee9
+
+; APITextLine -- 0213
+; 
+; Return the text engine's cursor to the beginning of the next line.
+APITextLine:: ; 0213
+	jp $2efa
+
+; APIDrawChar -- 0216
+; 
+; Load a character tile and draw it in the current text box.
+; 
+; @param	a	Character code
+; @param	b	X coordinate
+; @param	c	Y coordinate
+APIDrawChar:: ; 0216
+	jp $2f1c
+
+; APITileMapOffset -- 0219
+; 
+; Return a tilemap/attribute map offset in `hl`.
+; 
+; @param	b	X coordinate
+; @param	c	Y coordinate
+; 
+; @return	hl	Tilemap offset
+APITileMapOffset:: ; 0219
+	jp $2fe0
+
+APIFunction44:: ; 021c
+	jp $3031
+	
+	
+; push af
+; push bc
+; push de
+; push hl
+; call APIFunction3B
+; hl = $C20A[0..2]
+; e = ([$C20E] * [$C212]) * [$C210]
+; a = 0
+; while(True) {
+; 	push af
+; 	if a < e
+; 		do {
+; 			while (a = [hl++]) != 0 {}
+; 			a = hl[-2]
+; 		} while (a == 2)
+; 		pop af
+; 		a++
+; 		continue
+; 	else
+; 		pop af
+; 		push [$C1BD]
+; 		[$C1BD] = [$C20E]
+; 		d = 0
+; 		push [$C1BD]
+; 		push de
+; 		e = ([$C212] * (([$C20E] - [$C1BD]) <<c 1) + (([$C20E] - [$C1BD]) <<c 1)) >> 1
+; 		
+; 		
+; 		
+; 	endif
+; }
+
+; APIDrawMenu -- 021F
+; 
+; Draw the current menu page.
+APIDrawMenu:: ; 021f
+	jp $30bc
+	
+	
+; pop hl
+; pop de
+; pop bc
+; pop af
+; ret
+
+; APIPopReturn -- 0222
+; 
+; Pops all registers and returns.
+; You probably want to `jp` to this!
+; 
+; Registers are popped in the order of hl, de, bc, af.
+; So, to use this, you'd want to start your function with:
+; ```
+; push af
+; push bc
+; push de
+; push hl
+; ```
+; and end it with:
+; ```
+; jp APIPopReturn
+; ```
+APIPopReturn:: ; 0222
+	jp $3185
+
+
+
+
+
 include "include/api/math.asm"
 include "include/api/audio.asm"
 
 	
 
 	
+; APISetMegaSprites -- 0258
 ; 
-; something to do with metasprites i think????
+; Set the megasprite array pointer.
+; The megasprite array is an array of pointers to megasprites.
+; Each megasprite is an array of pointers to frames.
+; Each frame consists of a length byte followed by a series of 4-byte entries in OAM format.
 ; 
-; 
-; # items + 4-byte data table
-;  
-; 
-; hl[Sprite?][Frame?][Object][Y,X,T,A]
-; 
-; [$C1C5->$C1C6] = hl (little endian)
-; 
-; @param	hl	pointer to table of 11(?) pointers to tables of pointers to tables of 4-byte values starting with length byte
-; 				[G010 has table $01,$57, $75,$59, $83,$59, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00, $00,$00]
-				; $5701 - $0F,$57, $84,$57, $ED,$57, $56,$58, $AB,$58, $14,$59, $75,$59, $1D,$00
-				; $570F - $1D, 
-				;         $00, $10, $00, $01, 
-				;         $00, $18, $01, $04, 
-				;         $00, $20, $02, $01, 
-				;         $00, $28, $03, $01,
-				;         $08, $00, $04, $01,
-				;         $08, $08, $05, $04,
-				;         $08, $10, $06, $04,
-				;         $08, $18, $07, $04,
-				;         $08, $20, $08, $04,
-				;         $08, $28, $09, $01,
-				;         $10, $00, $0A, $01,
-				;         $10, $08, $0B, $04,
-				;         $10, $10, $0C, $01,
-				;         $10, $18, $0D, $01,
-				;         $10, $20, $0E, $01,
-				;         $10, $28, $0F, $01,
-				;         $18, $08, $10, $00,
-				;         $18, $10, $11, $00,
-				;         $18, $18, $12, $00,
-				;         $18, $20, $13, $00,
-				;         $20, $08, $14, $00,
-				;         $20, $10, $15, $00,
-				;         $20, $18, $16, $00,
-				;         $20, $20, $17, $00,
-				;         $20, $28, $18, $05,
-				;         $28, $10, $19, $00,
-				;         $28, $18, $1A, $00,
-				;         $28, $20, $1B, $05,
-				;         $28, $28, $1C, $05
-				; $5784 - $1A,
-				;         $00, $28, $1D, $01, 
-				;         $08, $08, $1E, $01, 
-				;         $08, $10, $1F, $04, 
-				;         $08, $18, $20, $04, 
-				;         $08, $20, $21, $04, 
-				;         $08, $28, $22, $01, 
-				;         $10, $00, $23, $01, 
-				;         $10, $08, $24, $04, 
-				;         $10, $10, $25, $04, 
-				;         $10, $18, $26, $01, 
-				;         $10, $20, $27, $01, 
-				;         $10, $28, $28, $01, 
-				;         $18, $08, $29, $00, 
-				;         $18, $10, $2A, $00, 
-				;         $18, $18, $2B, $00, 
-				;         $18, $20, $2C, $00, 
-				;         $18, $28, $2D, $01, 
-				;         $20, $08, $2E, $00, 
-				;         $20, $10, $2F, $00, 
-				;         $20, $18, $30, $00, 
-				;         $20, $20, $31, $00, 
-				;         $20, $28, $32, $05, 
-				;         $28, $10, $33, $00, 
-				;         $28, $18, $34, $00, 
-				;         $28, $20, $35, $05, 
-				;         $28, $28, $36, $05
-				; ...
-				;
-				; $5975 - $79,$59,$7E,$59
-				; $5979 - $01,
-				;         $00,$00,$B4,$00
-				; $597E - $01,
-				;         $00,$00,$B5,$00
-				;
-				; $5983 - $87,$59,$B8,$59
-				; $5987 - $0C,
-				;         $00,$00,$98,$02,
-				;         $00,$08,$99,$02,
-				;         $00,$10,$9A,$02,
-				;         $00,$18,$9B,$02,
-				;         $08,$00,$9C,$02,
-				;         $08,$18,$9D,$02,
-				;         $10,$00,$9E,$02,
-				;         $10,$18,$9F,$02,
-				;         $18,$00,$A0,$02,
-				;         $18,$08,$A1,$02,
-				;         $18,$10,$A2,$02,
-				;         $18,$18,$A3,$02,
-				; $59B8 - $10,
-				;         $00,$00,$A4,$02,
-				;         $00,$08,$A5,$02,
-				;         $00,$10,$A6,$02,
-				;         $00,$18,$A7,$02,
-				;         $08,$00,$A8,$02,
-				;         $08,$08,$A9,$02,
-				;         $08,$10,$AA,$02,
-				;         $08,$18,$AB,$02,
-				;         $10,$00,$AC,$02,
-				;         $10,$08,$AD,$02,
-				;         $10,$10,$AE,$02,
-				;         $10,$18,$AF,$02,
-				;         $18,$00,$B0,$02,
-				;         $18,$08,$B1,$02,
-				;         $18,$10,$B2,$02,
-				;         $18,$18,$B3,$02,
-				
-				
-				
-				
-				
-APIFunction58:: ; 0258
+; @param	hl	Megasprite array pointer
+APISetMegaSprites:: ; 0258
 	jp $1186
 	
-; if [$C1C4] >= 16 then return
-; [$C1C4]++
-; [$C1CA + [$C1C4]*4] = edcb
-APIFunction59:: ; 025b
+; APIAddSprite -- 025B
+; 
+; Add an entry to the sprite table.
+; 
+; @param	e	Y coordinate
+; @param	d	X coordinate
+; @param	c	Megasprite index, or 0xFF for single tile
+; @param	b	Megasprite frame index, or tile number
+APIAddSprite:: ; 025b
 	jp $118f
 	
-; identical jump ptr to Function59
-APIFunction5A:: ; 025e
+; APIAddSprite0 -- 025E
+; 
+; Add an entry to the sprite table.
+; 
+; @param	e	Y coordinate
+; @param	d	X coordinate
+; @param	c	Megasprite index, or 0xFF for single tile
+; @param	b	Megasprite frame index, or tile number
+APIAddSprite0:: ; 025e
 	jp $118f
 	
-	
+; APIDrawSprites -- 0261
 ; 
-; 
-; clears Shadow OAM....
-; 
-; update sprite engine??? maybe????
-
-; $C000[0..$A0] = 0
-; if [$C1C4] != 0 then
-;     b = [$C1C4]
-;     [$C1C4] = 0
-;     di
-;     if [$C1C6] < $60 then:
-;         [rBankANum ($27FF)], [wBankANumBackup] = [$C21C]
-;         [rBankARomFlashSelect ($2800)], [wBankASelectBackup] = [$C21D]
-;     else:
-;         [rBankBNum ($37FF)], [wBankBNumBackup] = [$C21C]
-;         [rBankBRomFlashSelect ($3800)], [wBankBSelectBackup] = [$C21D]
-;     end
-;     [$C1C7] = $28
-;     
-;     hl = $C1CA
-;     de = $C000
-;     while(something):
-;         push bc, hl, de
-;         [$C1C8][0..2] = hl++++[0..2]
-;         if [hl] == $FF
-; ...
-APIUpdateSpriteEngine:: ; 0261 
+; Convert the sprite table to the OAM DMA buffer.
+APIDrawSprites:: ; 0261 
 	jp $11aa
 	
 ; APIPredef -- 0264
@@ -308,85 +531,87 @@ APIJoypadFrameCount:: ; 0279
 	
 APIJoypad:: ; 027c
 	jp $2620
-APIFunction65:: ; 027f
-	jp $2685
-	
-	
-	
-; ask to delete save data??? maybe???
-; 
-; im guessing because it can print the following text:
-; セ—ブテ—タを すべてさくじょします<LINE>
-; ついかとうろくした いくつかの<LINE>
-; ミニゲ—ムや ついかド—タも きえて<LINE>
-; しまいます よろしいですか?<NULL>
 
-APIFunction66:: ; 0282
+; APIGetMiniGameBank -- 027f
+; 
+; Load the bank number for minigame `a` in `e`,
+; and the flash flag ($00 or $08) in `d`.
+; 
+; @param	a	Minigame number
+; 
+; @return	d	$00 for ROM, $08 for flash
+; @return	e	ROM/flash bank number for minigame
+APIGetMiniGameBank:: ; 027f
+	jp $2685
+
+; APILoadDefaultMenuGFX -- 0282
+; 
+; Load the default menu graphics.
+; 
+; @see APILoadDakutenGFX
+; @see APILoadCustomMenuGFX
+APILoadDefaultMenuGFX:: ; 0282
 	jp $1663
-	
-	
-; Initialize filesystem?
-; Delete save data?
+
+; APIRebuildSysFiles -- 0285
 ; 
-; destroy filesystem checksum
-; validate filesystem
-; open SYS0
-; wC638 = c from APIOpenFile
-; return 2 in a if file not exists
-; copy 50 bytes from $D000 to [de after APIClearSYS0]
-; close file
-; 42bd
-; open SYS1
-; initialize the data in SYS1? (00:3E00)
-; does something with flash memory....
-; return
-APIFunction67:: ; 0285
+; Create SYS0 and SYS1 if they don't already exist,
+; and reinitialize SYS1, but not SYS0 due to a bug.
+; Due to the same bug, which WRAM bank is loaded after
+; this function returns is undefined.
+; 
+; @return	a	Return state, from [OK, VALIDATE_FS_FAILED, OPEN_FILE_FAILED]
+APIRebuildSysFiles:: ; 0285
 	jp $1675
-	
-; APIOpenSYS0 -- 0288
+
+; APILoadSys0 -- 0288
 ; 
-; Open SYS0
+; Copy the contents of SYS0 to $C700.
 ; 
-; if the file exists, copy its data to wSYS0Copy ($C700),
-; and return 0 in `a`.
-; 
-; else, call APIClearSYS0 and return 1 in `a`.
-; 
-; @return	a	1 if SYS0 could not be created, else 0
-APIOpenSYS0:: ; 0288
+; @return	a	Return state, from [OK, OPEN_FILE_FAILED]
+APILoadSys0:: ; 0288
 	jp $1689
-	
-; APICloseSYS0 -- 028B
+
+; APIWriteSys0 -- 028b
 ; 
-; Open SYS0
+; Copy data from $C700 to SYS0.
 ; 
-; if the file exists, copy 0x32 bytes from wSYS0Copy ($C700) 
-; to SYS0, close the file, and return 0 in `a`
-; 
-; else, return 1 in `a`
-; 
-; @return	a	1 if SYS0 could not be created, else 0
-APICloseSYS0:: ; 028b
+; @return	a	Return state, from [OK, OPEN_FILE_FAILED]
+APIWriteSys0:: ; 028b
 	jp $169d
-	
-; fills 50 (0x32) bytes from wSYS0Copy ($C700) with 00
-APIClearSYS0:: ; 028e
+
+; APIClearSys0 -- 028e
+; 
+; Zero out 50 bytes (the size of SYS0) at $C700.
+APIClearSys0:: ; 028e
 	jp $16b1
-	
-; di
-; [$C63A] = a
-; push de
-; de = $C649
-; call Function1783 ; back up bank A to de, swap bank A to 0x16
-; pop de
-; call 16:4312
-; de = $C649
-; call Function179F ; restore bank A from de
-; ei
-; ret
-APIFunction6B:: ; 0291
+
+; APIReadTiles -- 0291
+; 
+; Read the specified rectangle of tilemap and attribute data to `de`.
+; [$C63A] bit 7 specifies which tilemap to copy from,
+; while [$C63A] bits 0-2 specify which WRAM bank to load.
+; 
+; @param	b	left x coordinate
+; @param	c	top y coordinate
+; @param	h	width
+; @param	l	height
+; @param	de	destination
+APIReadTiles:: ; 0291
 	jp $16bf
-APIFunction6C:: ; 0294
+
+; APIWriteTiles -- 0294
+; 
+; Write the specified rectangle of tilemap and attribute data from `de`.
+; [$C63A] bit 7 specifies which tilemap to copy from,
+; while [$C63A] bits 0-2 specify which WRAM bank to load.
+; 
+; @param	b	left x coordinate
+; @param	c	top y coordinate
+; @param	h	width
+; @param	l	height
+; @param	de	source
+APIWriteTiles:: ; 0294
 	jp $16d6
 
 ; APIDoMenu -- 0297
@@ -402,12 +627,33 @@ APIFunction6C:: ; 0294
 APIDoMenu::
 	jp $16ed
 	
-	
-APIFunction6E:: ; 029a
+; APITryCreateFile -- 029a
+; 
+; Try to create a file with the given name and size.
+; If it doesn't exist and can't be created,
+; display a warning and ask the player if they want to continue anyway.
+; 
+; @param	bc	Requested file size
+; @param	de	Pointer to filename string
+; 
+; @return	b	Return state, from [OK, WARNING_YES, WARNING_NO]
+APITryCreateFile:: ; 029a
 	jp $172d
-APIFunction6F:: ; 029d
+
+; APISkillPoint -- 029d
+; 
+; Give the player the specified number of points in each skill.
+; 
+; @param	a	Minigame number
+; @param	$C84B	Reflex points
+; @param	$C84C	Intelligence points
+; @param	$C84D	Sense points
+; @param	$C84E	Hidden points (global)
+; @param	$C84F	Hidden points (this minigame)
+; 
+; @note	If this is one of the last 8 minigames played, $C84E is skipped.
+APISkillPoint:: ; 029d
 	jp $176f
-	
 	
 ; Temporarily disables VBlank handler,
 ; Calls 10:4E90,
@@ -435,65 +681,81 @@ APIFunction6F:: ; 029d
 	
 APIFunction70:: ; 02a0
 	jp $3edc
-APIFunction71:: ; 02a3
+
+; APICopyStringFillNumber -- 02a3
+; 
+; Copy a string from `de` to `hl`,
+; replacing any $FF bytes with digits from the number in `bc`.
+; 
+; @param	a	Number of digits - 1
+; @param	bc	Number to insert
+; @param	de	Source
+; @param	hl	Destination
+APICopyStringFillNumber:: ; 02a3
 	jp $3f69
 	
-	
-; Calls APIFunction70's 5th function (10:51FE)
-APIFunction72:: ; 02a6
+; APIFindMiniGame -- 02a6
+; 
+; Find the minigame with the ID pointed to by `de`,
+; returning its number in `a`, or $FF if not found.
+; 
+; @param	de	Pointer to minigame ID
+; 
+; @return	a	Minigame number (or $FF)
+APIFindMiniGame:: ; 02a6
 	jp $3f3a
 	
-; Calls APIFunction70's 6th function (10:5334)
-
-; 10:5334 --
+; APIFindAppendMiniGames -- 02a9
 ; 
-; [$C866][0..2] = de
-; [$C86A][0..2] = bc
-; [$C864][0..2] = [$FFAD][0..2]
-; [$C870] = [$FFAE] | [$FFAC]
+; Find all minigames whose two-byte append IDs match the one pointed
+; to by `de`, write their numbers at `bc`, and return a count in `b`.
 ; 
-; b = $0F
-; hl = $3CD8 ; [$3CD8] = $54
-; do {
-;     e = [hl++]
-;     d = 0
-;     call Function35D7 ; swap bank B to num `e`, select `d`
-;     push hl
-;     [$C862] = e
-;     hl = $600D ; maybe GameHeader_Unk2?
-;     de = [$C866][0..2]
-;     c = 2
-;     call Function5599 ; compare `c` bytes between `de` and `hl`. [$C862] = $FF if they're not equal
-;     pop hl
-;     
-;     if [$C862] != $FF:
-;         de = [$C86A][0..2]
-;         [de++] = $0F - b
-;         [$C86A][0..2] = de
-; } while(--b != 0)
+; @param	bc	Pointer to array buffer
+; @param	de	Pointer to append ID
 ; 
-; with open('SYS1'):
-;     [$C863] = [SYS1:007]
-; 
-; [$C868] = swap([$C863])
-; [$C862] = $FF
-; 
-; 
+; @return	b	Number of minigames found
 APIFindAppendMiniGames:: ; 02a9
 	jp $3f4c
 
-; Calls APIFunction70's 7th function (10:545B)
+; APIGetMiniGameBank0 -- 02ac
 ; 
-; @return	d	Bank ROM/Flash select for this minigame
-; @return	e	Bank number for this minigame
-APIGetMiniGameBankDuplicate:: ; 02ac
+; Same as APIGetMiniGameBank.
+; 
+; @param	a	Minigame number
+; 
+; @return	d	$00 for ROM, $08 for flash
+; @return	e	ROM/flash bank number for minigame
+; 
+; @see	APIGetMiniGameBank
+APIGetMiniGameBank0:: ; 02ac
 	jp $3f55
 	
-; Calls APIFunction70's 8th function (10:5472)
-APIFarCopy:: ; 02af
+; APICopyFar -- 02af
+; 
+; Swap in ROM/flash bank `de`, then copy `bc` bytes
+; from the pointer at [$C862] to the pointer at [$C864].
+; 
+; @param	bc	Length
+; @param	d	Source: $00 for ROM, $08 for flash
+; @param	e	Source: ROM/flash bank number
+; 
+; @note	The source bank is always swapped into bank B,
+;      	but a source address in bank A will be corrected.
+APICopyFar:: ; 02af
 	jp $3f60
 	
+; [$C212] = max(a, [$C20F] - 1) / ([$C20E] * [$C20D])
+; [$C215] = max(a, [$C20F] - 1) / ([$C20E] * [$C20D])
+; [$C21B] = (max(a, [$C20F] - 1) % ([$C20E] * [$C20D])) % [$C210]
+; [$C214] = (max(a, [$C20F] - 1) % ([$C20E] * [$C20D])) / [$C210]
+; [$C216] = (max(a, [$C20F] - 1) % ([$C20E] * [$C20D])) / [$C210]
 APIFunction76:: ; 02b2
 	jp $318a
-APIFunction77:: ; 02b5
+
+; APIMobile -- 02b5
+; 
+; Call a function from the mobile adapter API.
+; 
+; @param	a	Function index
+APIMobile:: ; 02b5
 	jp $3560

@@ -111,13 +111,13 @@ APIWordMultiply:: ; 0231
 
 ; APIByteDivide -- 0234
 ; 
-; Returns `a` / `c` as `h` R `l`.
+; Returns `a` / `c` as `l` R `h`.
 ; 
 ; @param	a	Dividend
 ; @param	c	Divisor
 ; 
-; @return	h	Quotient
-; @return	l	Remainder
+; @return	l	Quotient
+; @return	h	Remainder
 APIByteDivide:: ; 0234
 	jp $2046
 	
@@ -134,13 +134,13 @@ APIByteDivide:: ; 0234
 
 ; APIWordDivide -- 0237
 ; 
-; Returns `hl` / `c` as `h` R `l`.
+; Returns `hl` / `c` as `l` R `h`.
 ; 
 ; @param	hl	Dividend
 ; @param	c	Divisor
 ; 
-; @return	h	Quotient
-; @return	l	Remainder
+; @return	l	Quotient
+; @return	h	Remainder
 APIWordDivide:: ; 0237
 	jp $2057
 	
