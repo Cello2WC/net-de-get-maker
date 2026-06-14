@@ -102,8 +102,8 @@ wC217: db ; C217
 wC218: db ; C218
 wC219: dw ; C219
 wC21B: db ; C21B
-wC21C: db ; C21C
-wC21D: db ; C21D
+wSpriteDataBank: db ; C21C
+wSpriteDataSelect: db ; C21D
 wC21E: db ; C21E
 
 wPalUnpackScale:: db ; C21F

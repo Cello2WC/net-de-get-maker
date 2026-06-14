@@ -44,6 +44,9 @@ StartGame::
 
     ld a, 6
     call WaitAFrames
+    
+    
+    call APIJoypadFrameCount
 
 .skipPal
 
@@ -100,6 +103,7 @@ StartGame::
     
 
 GameLoop:
+    call APIJoypadFrameCount
     ld a, [wStartTimer]  
     or a
     jr z, .skipStart
@@ -188,10 +192,7 @@ GameLoop:
 
     ld bc, SFX_Jump
     call PlaySFX
-
-        ;ld a, 120 - 5
-        ;ld [wNasuY], a
-        ;jr .skipJumpUpdate
+    
 .noNewJump
     ld a, [wNasuY]
     ld b, a
@@ -266,10 +267,6 @@ GameLoop:
 
 .less
 
-    
-
-    
-
     ld a, [wFlags]
     bit 1, a
     jr z, .noRedEggplant
@@ -279,20 +276,18 @@ GameLoop:
     call NewRedEggplant
     
 .noRedEggplant
-
-
-    ;ld a, wNasuFrame
-
-
     call UpdateRedEggplant
 
+    di
     call DrawNasu
     call DrawEggplant
     call DrawRedEggplant
     call DrawSmallPoints
+    call APIDrawSprites
     call CapScore
     call DrawScore
-
+    ei
+    
     ld a, [wEggplantY]
     inc a
     ld [wEggplantY], a
@@ -327,46 +322,12 @@ InitGameVars:
     ld a, $FF
     ld [wBonusTimer], a
     ret
-    
-    
 
 DrawNasu:
-    
-    ld a, [wNasuY]
-    ld [wVOAM+(8*4)], a
-    ld [wVOAM+(8*4) + 4], a
-    add a, 8
-    ld [wVOAM+(8*4) + 8], a
-    ld [wVOAM+(8*4) + 12], a
-    ld a, [wNasuFrame]
-    bit 7, a
-    jr z, .noFlip
-    ld a, [wNasuX]
-    ld [wVOAM+(8*4) + 5], a
-    ld [wVOAM+(8*4) + 13], a
-    add a, 8
-    ld [wVOAM+(8*4) + 1], a
-    ld [wVOAM+(8*4) + 9], a
-    ld a, %00100001
-    jr .doneFlip
-.noFlip
-    ld a, [wNasuX]
-    ld [wVOAM+(8*4) + 1], a
-    ld [wVOAM+(8*4) + 9], a
-    add a, 8
-    ld [wVOAM+(8*4) + 5], a
-    ld [wVOAM+(8*4) + 13], a
-    ld a, %00000001
-.doneFlip
-    ld [wVOAM+(8*4) + 3], a
-    ld [wVOAM+(8*4) + 7], a
-    ld [wVOAM+(8*4) + 11], a
-    ld [wVOAM+(8*4) + 15], a
-
     ld a, [wNasuJumpTimer]
     or a
     jr z, .noJump
-    ld a, $0C
+    ld b, MEGASPRITE_NASU_BIRD_JUMP_RIGHT
     jr .doneFrameCalc
 .noJump
     ld a, [wNasuFrame]
@@ -374,129 +335,45 @@ DrawNasu:
     jr nz, .still
     and a, %00011111
     cp 12
-    ld a, 4
+    ld b, MEGASPRITE_NASU_BIRD_WALK_RIGHT_1
     jr c, .less
-    add a, 4
+    ld b, MEGASPRITE_NASU_BIRD_WALK_RIGHT_2
 .less
     jr .doneFrameCalc
 .still
-    xor a
+    ld b, MEGASPRITE_NASU_BIRD_STAND_RIGHT
 .doneFrameCalc
-    add a, $C5
-    ld [wVOAM+(8*4) + 2], a
-    inc a
-    ld [wVOAM+(8*4) + 6], a
-    inc a
-    ld [wVOAM+(8*4) + 10], a
-    inc a
-    ld [wVOAM+(8*4) + 14], a
-    
-    ld a, [wFlags]
-    bit 2, a
-    call nz, DrawCheaterEggplant    
-
-    ret
-
-DrawCheaterEggplant:
-
-    ld b, 0
-
-    ld a, [wNasuJumpTimer]
-    or a
-    jr nz, .jump
-    ld a, [wNasuFrame]
-    bit 6, a
-    jr nz, .still
-    and a, %00011111
-    cp 12
-    jr c, .less
-.more
-    ld b, $01
-    ld a, $D7
-    ld [wVOAM+(8*4)+14], a
-    jr .doneFrameCalc
-.jump
-    ld b, $01
-    ld a, $D8
-    ld [wVOAM+(8*4)+10], a
-    inc a
-    ld [wVOAM+(8*4)+14], a
-    jr .doneFrameCalc
-.still
-    ld a, $D5
-    ld [wVOAM+(8*4)+14], a
-    jr .doneFrameCalc
-.less
-    ld a, $D6
-    ld [wVOAM+(8*4)+14], a
-
-.doneFrameCalc
-
-
-    ld a, [wNasuY]
-    sub 4
-    add b
-    ld [wVOAM+(4*4)], a
-    ld [wVOAM+(4*4) + 4], a
-    add a, 8
-    ld [wVOAM+(4*4) + 8], a
-    ld [wVOAM+(4*4) + 12], a
     ld a, [wNasuFrame]
     bit 7, a
-    jr nz, .noFlip
-    ld a, [wNasuX]
-    ld [wVOAM+(4*4) + 5], a
-    ld [wVOAM+(4*4) + 13], a
-    add a, 8
-    ld [wVOAM+(4*4) + 1], a
-    ld [wVOAM+(4*4) + 9], a
-    ld a, %00100010
-    jr .doneFlip
-.noFlip
-    ld a, [wNasuX]
-    ld [wVOAM+(4*4) + 1], a
-    ld [wVOAM+(4*4) + 9], a
-    add a, 8
-    ld [wVOAM+(4*4) + 5], a
-    ld [wVOAM+(4*4) + 13], a
-    ld a, %00000010
+    jr z, .doneFlip
+.flip
+    ld a, MEGASPRITE_NASU_BIRD_STAND_LEFT
+    add b
+    ld b, a
 .doneFlip
-    ld [wVOAM+(4*4) + 3], a
-    ld [wVOAM+(4*4) + 7], a
-    ld [wVOAM+(4*4) + 11], a
-    ld [wVOAM+(4*4) + 15], a
-    ld a, $DA
-    ld [wVOAM+(4*4) + 2], a
-    inc a
-    ld [wVOAM+(4*4) + 6], a
-    inc a
-    ld [wVOAM+(4*4) + 10], a
-    inc a
-    ld [wVOAM+(4*4) + 14], a
-                ;ld a, %00000010
     
-
-
-    ld hl, wVOAM+(8*4)
-    ld de, 4*2
-    xor a
-    call Fill
-
-    ret
+    ld c, MEGASPRITE_NASU_BIRD
+    ld a, [wFlags]
+    bit 2, a
+    jr z, .notCheater
+    ld c, MEGASPRITE_NASU_BIRD_CHEATER
+.notCheater
     
+    ld a, [wNasuX]
+    ld e, a
+    ld a, [wNasuY]
+    ld d, a
     
+    jp APIAddSprite
+
 
 DrawEggplant:
-    ld hl, wVOAM + (4*16)
     ld a, [wEggplantY]
-    ld [hli], a
+    ld d, a
     ld a, [wEggplantX]
-    ld [hli], a
-    ld a, $E1
-    ld [hli], a
-    ld a, %00000010
-    ld [hli], a
-    ret
+    ld e, a
+    lb bc, MEGASPRITE_NASU_EGGPLANT_PURPLE, MEGASPRITE_NASU_EGGPLANT
+    jp APIAddSprite
 
 EggplantCheckBC:
     ld a, [wNasuX]	; b >= a
@@ -551,15 +428,6 @@ EggplantCheckBC:
     ld hl, String_1000
     ld bc, 4
     call APICopyVRAM
-
-;    ld a, 8
-;    call CopyTwoRowsToScreen
-;    			call CopyTilemapToScreen
-;
-    ;call WaitOneFrame     ; stutter
-;    ld a, 9
-;    call CopyTileRowToScreen
-;    call WaitOneFrame
     
     ld a, 90
     ld [wStartTimer], a
@@ -614,66 +482,32 @@ DrawSmallPoints:
     jr z, .three
     dec a
     ld [wPts1Timer], a
-;    cp a, 29
-;    jr z, .addPtsOne
     or a
     jr z, .three
-;.removePtsOne
-;    xor a
-;    ld hl, wVOAM;+(4*6)
-;    ld de, 4
-;    call Fill
-;    jr .three
 .addPtsOne
-;    		ld [wPts1Timer], a
     ld a, [wPts1Y]
-    ld [wVOAM + (4*0)], a	;6
+    ld d, a
     ld a, [wPts1X]
-    ld [wVOAM + (4*0) + 1], a
-    ld a, $DE
-    ld [wVOAM + (4*0) + 2], a
-    xor a
-    ld [wVOAM + (4*0) + 3], a
-
-
-
-
+    ld e, a
+    
+    lb bc, MEGASPRITE_NASU_POINTS_TEN, MEGASPRITE_NASU_POINTS
+    call APIAddSprite
+    
 .three
     ld a, [wPts2Timer]
     or a
     ret z
     dec a
     ld [wPts2Timer], a
-;    cp a, 29
-;    jr z, .addPtsThree
     or a
     ret z
-;.removePtsThree
-;    xor a
-;    ld hl, wVOAM+(4*1)
-;    ld de, 8
-;    call Fill
-;    ret
 .addPtsThree
-;    		ld [wPts2Timer], a
     ld a, [wPts2Y]
-    ld [wVOAM + (4*1)], a	;6
-    ld [wVOAM + (4*2)], a	;6
+    ld d, a
     ld a, [wPts2X]
-    ld [wVOAM + (4*1) + 1], a
-    add 8
-    ld [wVOAM + (4*2) + 1], a
-    ld a, $DF
-    ld [wVOAM + (4*1) + 2], a
-    inc a
-    ld [wVOAM + (4*2) + 2], a
-    xor a
-    ld [wVOAM + (4*1) + 3], a
-    ld [wVOAM + (4*2) + 3], a
-
-
-
-    ret
+    ld e, a
+    lb bc, MEGASPRITE_NASU_POINTS_THREE_HUNDRED, MEGASPRITE_NASU_POINTS
+    jp APIAddSprite
 
 Add10Points:
     ld a, [wScore+1]
@@ -719,18 +553,8 @@ CapScore:
     ret
 
 DrawScore:
-;    ld a, [hVBGCopyLen]
-;    or a
-;    ret nz
-    
-;    ld a, [hVBGPalH]
-;    or a
-;    ret nz
-    
     coord hl, 15, 16
     call DrawScoreAtHL
-;    ld a, 16
-;    call CopyTileRowToScreen
     ret
     
 SetNewRedEggplant:
@@ -814,16 +638,12 @@ UpdateRedEggplant:
     ret
 
 DrawRedEggplant:
-    ld hl, wVOAM + (4*17)
     ld a, [wBonusY]
-    ld [hli], a
+    ld d, a
     ld a, [wBonusX]
-    ld [hli], a
-    ld a, $E1
-    ld [hli], a
-    ld a, %00010011
-    ld [hli], a
-    ret
+    ld e, a
+    lb bc, MEGASPRITE_NASU_EGGPLANT_RED, MEGASPRITE_NASU_EGGPLANT
+    jp APIAddSprite
 
 RedEggplantCheck:
     ld a, [wBonusX]
@@ -862,10 +682,3 @@ String_Bonus:
     db "BONUS"
 String_1000:
     db "1000"
-
-
-
-
-;GameOver:
-;    call NewEggplant
-;    jp GameLoop.gameNotOver

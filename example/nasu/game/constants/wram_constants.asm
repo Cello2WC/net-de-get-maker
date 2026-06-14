@@ -1,5 +1,5 @@
 
-DEF wVOAM equ $C000
+;DEF wVOAM equ $C000
 
 
 

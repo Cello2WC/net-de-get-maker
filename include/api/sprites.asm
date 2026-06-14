@@ -13,8 +13,8 @@ APISetMegaSprites:: ; 0258
 ; 
 ; Add an entry to the sprite table.
 ; 
-; @param	e	Y coordinate
-; @param	d	X coordinate
+; @param	e	X coordinate
+; @param	d	Y coordinate
 ; @param	c	Megasprite index, or 0xFF for single tile
 ; @param	b	Megasprite frame index, or tile number
 APIAddSprite:: ; 025b
@@ -24,8 +24,8 @@ APIAddSprite:: ; 025b
 ; 
 ; Add an entry to the sprite table.
 ; 
-; @param	e	Y coordinate
-; @param	d	X coordinate
+; @param	e	X coordinate
+; @param	d	Y coordinate
 ; @param	c	Megasprite index, or 0xFF for single tile
 ; @param	b	Megasprite frame index, or tile number
 APIAddSprite0:: ; 025e

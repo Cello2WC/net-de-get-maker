@@ -43,19 +43,22 @@ include "include/header.asm"
 MinigameStart:
 	
 	; I mess with these, so I'm backing them up to restore later.
-    ldh a, [rSTAT]
-    push af
-    ldh a, [$FFFF]
-    push af
+	ldh a, [rSTAT]
+	ld b, a
+	ldh a, [$FFFF]
+	ld c, a
+	; I'm trying to avoid using too much of the stack,
+	; because Net de Get puts its stack in HRAM, which is tiny.
+	push bc
 	
 	; This is the menu at the beginning of the game,
 	; with "Start" and "Info" as options.
 	call BeginMenu
 	; If the player backed out of the initial menu,
 	; then I can return early.
-    ld a, [wMenuChoice]
-    cp $ff
-    ret z
+	ld a, [wMenuChoice]
+	cp $ff
+	ret z
 
 	; This is where I put the majority of my game.
 	call GameBody
@@ -68,23 +71,20 @@ MinigameStart:
 	; back to 0000 before returning from your game!
 	call ResetInterrupts
 	
-	; Disable the timer
-	; I dunno if this is necessary I 
-	; just saw it in a base set game lol
-    xor a
-    ldh [$FF07], a
-    
-    ldh [rSCX], a
-    
-    ; Remember when I backed these up to restore later?
-    ; It's later!
-    pop af
-    ldh [$FFFF], a
-    pop af
-    ldh [rSTAT], a
-    
-    ; And now I can return control of execution
-    ; back to Net de Get!
+	; Reset the X scroll value, because I mess with it
+	xor a
+	ldh [rSCX], a
+	
+	; Remember when I backed these up to restore later?
+	; It's later!
+	pop bc
+	ld a, c
+	ldh [$FFFF], a
+	ld a, b
+	ldh [rSTAT], a
+	
+	; And now I can return control of execution
+	; back to Net de Get!
 	ret
 	
 ResetInterrupts:
@@ -126,9 +126,9 @@ PrepareGameOver:
 	call StringCopy
 	
 	ld a, [wHighScore+1]
-    ld e, a
-    ld a, [wHighScore]
-    ld d, a
+	ld e, a
+	ld a, [wHighScore]
+	ld d, a
 	; Convert `de` into a max-4-digit printable number
 	call APINumString4
 	; Decorative 0
@@ -159,10 +159,6 @@ PrepareGameOver:
 	db "  HIGH  <NULL>"
 	
 WaitFade:
-;    ld a, $00
-;    ld [wTextCond], a
-;    ld a, $01
-;    ld [$d008], a
 	ld hl, BGPals
 	ld a, 4
 	call APIPackAllPalettes
@@ -170,8 +166,8 @@ WaitFade:
 	call APIApplyAllPalettes
 	call APIDrawSprites
 	call WaitOneFrame
-    ld a, [wPalPackScale]
-    or a
+	ld a, [wPalPackScale]
+	or a
 	jr nz, .loop
 	ret
 	
@@ -193,39 +189,39 @@ GameInfo:
 	; Fall through to BeginMenu.
 	
 BeginMenu:
-    ld a, $FF
-    ld [$D07F], a
-    ld a, 2
-    ld c, a
-    ld hl, .Options
-    call APIDoMenu
-    ld a, [wMenuChoice]
-    cp $FF
-    jr z, .backedOut
-    ; There's a restart vector for the jumptable function,
-    ; but for some reason I've not seen it be used in
-    ; Net de Get's own code...
-    rst 0 ; Jumptable
+	ld a, $FF
+	ld [$D07F], a
+	ld a, 2
+	ld c, a
+	ld hl, .Options
+	call APIDoMenu
+	ld a, [wMenuChoice]
+	cp $FF
+	jr z, .backedOut
+	; There's a restart vector for the jumptable function,
+	; but for some reason I've not seen it be used in
+	; Net de Get's own code...
+	rst 0 ; Jumptable
 .OptionFuncs
 	dw .Start
 	dw GameInfo
 .Start
-    call WaitFade
-    ret
+	call WaitFade
+	ret
 .backedOut
-    ld a, $10
-    ld [wGameReturnState], a
-    
+	ld a, $10
+	ld [wGameReturnState], a
+	
 	call ResetInterrupts
-    
-    ld a, $FF
-    ld [wMenuChoice], a
-    ret
+	
+	ld a, $FF
+	ld [wMenuChoice], a
+	ret
 
-    
+	
 .Options
-    db "Start<NULL>"
-    db "Info<NULL>"
+	db "Start<NULL>"
+	db "Info<NULL>"
 	
 GameInfoData:
 .palettes
@@ -256,7 +252,7 @@ GameInfoData:
 	db "A game where the   <LINE>"
 	db "bird-like-creature <LINE>"
 	db "jumps to catch the <LINE>"
-	db "falling eggplants. <NULL>"
+	db "falling eggplants.<NULL>"
 .page2
 	db "RULES(2)<LINE>"
 	db "Use the ✜ to move  <LINE>"
@@ -282,7 +278,7 @@ GameBody:
 
 	; ... so that I can use my own!
 	; (As far as I know, this is the only way to have custom music.)
-    call InitSound
+	call InitSound
 
 	; initialize minigame-specific memory
 	xor a
@@ -294,37 +290,47 @@ GameBody:
 	; that they all fit in VRAM at once.
 	; So, I just disable the screen and
 	; load them all in at the same time.
-    call APIDisableLCD
-    call APIClearVRAM
-    
-    xor a
-    ld hl, BGPals
-    call APISetBGPal ; Set palette 0
-    call APISetBGPal ; Set palette 1
-    call APISetBGPal ; Set palette 2
-    call APISetBGPal ; Set palette 3
-    call APISetBGPal ; Set palette 4
-    
-    xor a
-    ld hl, OBPals
-    call APISetOBPal ; Set palette 0
-    call APISetOBPal ; Set palette 1
-    call APISetOBPal ; Set palette 2
-    call APISetOBPal ; Set palette 3
+	call APIDisableLCD
+	call APIClearVRAM
+	
+	xor a
+	ld hl, BGPals
+	call APISetBGPal ; Set palette 0
+	call APISetBGPal ; Set palette 1
+	call APISetBGPal ; Set palette 2
+	call APISetBGPal ; Set palette 3
+	call APISetBGPal ; Set palette 4
+	
+	xor a
+	ld hl, OBPals
+	call APISetOBPal ; Set palette 0
+	call APISetOBPal ; Set palette 1
+	call APISetOBPal ; Set palette 2
+	call APISetOBPal ; Set palette 3
 
 	xor a
 	ld [rVBK], a
-    ld hl, GfxTile
-    ld de, $8800
-    ld bc, GfxEnd - GfxTile
-    call APICopyVRAM
+	ld hl, GfxTile
+	ld de, $8800
+	ld bc, GfxEnd - GfxTile
+	call APICopyVRAM
 
-    call APIEnableLCD
+	call APIEnableLCD
+	
+	
+	di
+	
+	; Set up the MegaSprite table
+    ld a, [wMinigameFlashBank]
+    ld [wSpriteDataBank], a
+    ld a, $08
+    ld [wSpriteDataSelect], a
+	ld hl, MEGASPRITE_NASU
+	call APISetMegaSprites
 	
 	; Set the interrupt vectors.
 	; Don't forget to set these back to 0000
 	; before returning from your minigame!
-	di
 	ld de, VBlank
 	call APISetVBlank
 	ld de, LCDC
@@ -333,45 +339,45 @@ GameBody:
 	call APISetTimer
 	call APISetSerial	
 	ei
-    
-    ; Play silence in my own audio engine, too
-    ld bc, Silence_Ptrs
-    call PlaySong
-    
-    ; Load Hi-Score from file
-    ld bc, 2
-    ld de, GameHeader_GameID
-    call APIOpenFile
-    
-    ld a, [hli]
-    ld [wHighScore], a
-    ld a, [hl]
-    ld [wHighScore+1], a
-    
-    call APICloseFile
-    
-    ; Set return state to "backed out".
-    ; this is changed to "game-over-ed" when the player loses,
-    ; so that backing out of the title screen is not counted
-    ; as a game over.
-    ld a, $10
-    ld [wGameReturnState], a
-    
+	
+	; Play silence in my own audio engine, too
+	ld bc, Silence_Ptrs
+	call PlaySong
+	
+	; Load Hi-Score from file
+	ld bc, 2
+	ld de, GameHeader_GameID
+	call APIOpenFile
+	
+	ld a, [hli]
+	ld [wHighScore], a
+	ld a, [hl]
+	ld [wHighScore+1], a
+	
+	call APICloseFile
+	
+	; Set return state to "backed out".
+	; this is changed to "game-over-ed" when the player loses,
+	; so that backing out of the title screen is not counted
+	; as a game over.
+	ld a, $10
+	ld [wGameReturnState], a
+	
 	; And now I can render NASU's title screen!
 	; Really, this is only still here so that
 	; the player has an opportunity to enter
 	; the cheat code.
-    jp TitleScreen
-    
+	jp TitleScreen
+	
 AddATimes:
-    or a
-    ret z
+	or a
+	ret z
 .loop
-    add hl, bc
-    dec a
-    jr nz, .loop
-    ret
-    
+	add hl, bc
+	dec a
+	jr nz, .loop
+	ret
+	
 ; hl - string 1
 ; bc - string 2
 ; e  - len
@@ -379,20 +385,20 @@ AddATimes:
 ; return in carry
 StringCompare:
 .loop
-    ld a, [hli]
-    ld d, a
-    ld a, [bc]
-    inc bc
-    cp d
-    jr nz, .unset
-    dec e
-    jr nz, .loop
+	ld a, [hli]
+	ld d, a
+	ld a, [bc]
+	inc bc
+	cp d
+	jr nz, .unset
+	dec e
+	jr nz, .loop
 .set
-    scf
-    ret
+	scf
+	ret
 .unset
-    or a
-    ret
+	or a
+	ret
 
 StringCopy:
 	ld a, [de]
@@ -407,17 +413,19 @@ StringCopy:
 ; hl - dest
 ; de - len
 Fill:
-    push bc
+	push bc
 .loop
-    ld [hli], a
-    dec de
-    ld b, a
-    ld a, d
-    or e
-    ld a, b
-    jr nz, .loop
-    pop bc
-    ret
+	ld [hli], a
+	dec de
+	ld b, a
+	ld a, d
+	or e
+	ld a, b
+	jr nz, .loop
+	pop bc
+	ret
+
+INCLUDE "game/megasprites.asm"
 
 INCLUDE "game/vblank.asm"
 INCLUDE "game/hblank.asm"
@@ -429,6 +437,7 @@ INCLUDE "game/screens/game.asm"
 INCLUDE "game/screens/gameover.asm"
 
 INCLUDE "game/gfx/palettes.asm"
+
 
 GfxTile:
 GfxFlat:     INCBIN "game/gfx/flat.2bpp"

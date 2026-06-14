@@ -38,3 +38,5 @@ ENDM
 MACRO text
 	db \#, "<NULL>"
 ENDM
+
+include "include/macros/megasprites.asm"
