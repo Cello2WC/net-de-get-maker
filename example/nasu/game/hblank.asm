@@ -7,11 +7,6 @@ DEF LYCMODE_READY equ 4
 
 
 LCDC:
-    push af
-    push bc
-    push de
-    push hl
-
     ld a, [hLYCMode]
     or a
     jp z, .done
@@ -26,7 +21,7 @@ LCDC:
 .title_lowerline
     cp 71
     jp nz, .done
-    ld a, 0
+    xor a
     ldh [rSCX], a
     jp .done
 .next
@@ -114,11 +109,7 @@ LCDC:
     jp .done
 .next5
 .done
-    pop hl
-    pop de
-    pop bc
-    pop af
-    reti
+    ret
 
 
 

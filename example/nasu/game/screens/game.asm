@@ -1,111 +1,103 @@
 DEF FIELD_LEFT_EDGE equ $05
 DEF FIELD_RIGHT_EDGE equ $9B
 
+CloudData:
+    db $83, $C1, $83
+    db $C2, $C3, $C4
+    
+    db $02, $02, $02
+    db $02, $02, $02
+    
+ClearStartData:
+    db $83, $83, $83, $83, $83
+    db $83, $83, $83, $83, $83
+    db $02, $02, $02, $02, $02
+    db $02, $02, $02, $02, $02
+    
+GroundData:
+    db $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82, $82
+    db $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01, $01
+
 StartGame::
-
-    ld bc, Silence_Ptrs
-    call PlaySong
-
-    ld a, $01
-    ld [hCopyTo], a
-
-    call ClearTilemap
-    call DrawBorders
-
-    coord hl, 7, 8
-    ld bc, String_Ready
-    ld de, 5
-    call Copy
-
-    call CopyTilemapToScreen_2
-
-    ld a, 6
-    call WaitAFrames
 
     ld a, 4
     call SetLYCMode
 
-    
-    call UseMapOne
+    ld bc, Silence_Ptrs
+    call PlaySong
 
-    xor a
-    ld [hCopyTo], a
-
-    coord hl, 7, 8
-    ld bc, String_Start
-    ld de, 5
-    call Copy
-    
-    coord hl, 0, 15
-    ld de, SCR_WIDTH * 2
-    ld a, $82
-    call Fill
-
-    coord hl, 9, 16
-    ld bc, String_Score
-    ld de, 11
-    call Copy
-
-    coord hl, 14, 5
-    ld de, 3
-    ld a, $C2
-    call IncFill
-    
-    coord hl, 2, 7
-    ld de, 3
-    ld a, $C2
-    call IncFill
-
-    ld a, $C1
-    ld [wTileMap + (SCR_WIDTH * 4) + 15], a
-    ld [wTileMap + (SCR_WIDTH * 6) + 3], a
-
-;    call IsGBC
-;    jr z, .skipPal
-
-    bgcoord hl, 0, 1
-    lb de, SCR_WIDTH, 7
-    
-    ld a, 2
-    call PaletteRect
-    ld a, 2
-    call WaitAFrames
-
-    bgcoord hl, 0, 8
-    lb de, SCR_WIDTH, 1
-    ld a, 0
-    call PaletteRect
-    call WaitOneFrame
-
-    bgcoord hl, 0, 9
-    lb de, SCR_WIDTH, 6
-    ld a, 2
-    call PaletteRect
-    ld a, 2
-    call WaitAFrames
-    
-
+    call ClearTilemap_KeepBorders
     ld a, 1
-    bgcoord hl, 0, 15
-    lb de, SCR_WIDTH, 2
-    call PaletteRect
-    ;call WaitOneFrame
+	ld [rVBK], a
+    ld a, $02
+    ld hl, $9800 + BG_MAP_WIDTH
+    ld de, BG_MAP_WIDTH * (SCR_HEIGHT-2)
+    call Fill
+    xor a
+	ld [rVBK], a
+
+    coord de, 7, 8
+    ld hl, String_Ready
+    lb bc, 5, 1
+    call APIScreenRectAttr
+
+
+    ld a, 6
+    call WaitAFrames
 
 .skipPal
-    call CopyTilemapToScreen
 
     call InitGameVars
 
-    ld a, 90
+    ld a, 89
     call WaitAFrames
 
     ld a, 2
     call SetLYCMode
+    
+    call WaitOneFrame
 
     ld bc, GamePlaySong_Ptrs
     call PlaySong
+    
+        
 
-    call UseMapZero
+    coord de, 7, 8
+    ld hl, String_Start
+    lb bc, 5, 1
+    call APIScreenRectAttr
+    
+    coord de, 0, 15
+    lb bc, SCR_WIDTH, 1
+    ld hl, GroundData
+    push bc
+    push hl
+    call APIScreenRectAttr
+    
+    coord de, 0, 16
+    pop hl
+    pop bc
+    call APIScreenRectAttr
+    
+    coord de, 9, 16
+    ld hl, String_Score
+    ld bc, 11
+    call APICopyVRAM
+
+    coord de, 14, 4
+    ld hl, CloudData
+    ld bc, $0302
+    push hl
+    push bc
+    call APIScreenRectAttr
+    
+    coord de, 2, 6
+    pop bc
+    pop hl
+    call APIScreenRectAttr
+    
+    
+    
 
 GameLoop:
     ld a, [wStartTimer]  
@@ -113,34 +105,18 @@ GameLoop:
     jr z, .skipStart
     dec a
     jr nz, .noClear
-
-    ld a, $83
-    coord hl, 7, 8
-    ld de, 5 + SCR_WIDTH		;5
-    call Fill
-
-    ld a, 8
-    call CopyTwoRowsToScreen
-
-    ;call WaitOneFrame     ; stutter
-;    ld a, 9
-;    call CopyTileRowToScreen
-
-    ;call CopyTilemapToScreen
-
-;    call IsGBC
-;    jr z, .noClear
-
-    bgcoord hl, 0, 8
-    lb de, SCR_WIDTH, 1
-    ld a, 2
-    call PaletteRect
+    
+    ld hl, ClearStartData
+    coord de, 7, 8
+    ld bc, $0502
+    call APIScreenRectAttr
+    
     xor a
 .noClear
     ld [wStartTimer], a
 .skipStart
     
-    ld a, [hHeldButtons]
+    ld a, [hJoyDown]
     and a, BUTTON_LEFT | BUTTON_RIGHT
     cp a, BUTTON_LEFT
     jr z, .left
@@ -157,7 +133,7 @@ GameLoop:
     ld [wNasuFrame], a
 .skipFrameRight
 
-    ld a, [wGlobalTimer]
+    ldh a, [hGlobalTimer]
     and a, %00000111
     
     ld a, [wNasuX]
@@ -180,7 +156,7 @@ GameLoop:
     ld [wNasuFrame], a
 .skipFrameLeft
 
-    ld a, [wGlobalTimer]
+    ldh a, [hGlobalTimer]
     and a, %00000111
     
     ld a, [wNasuX]
@@ -203,7 +179,7 @@ GameLoop:
     ld a, [wNasuJumpTimer]
     or a
     jr nz, .noNewJump
-    ld a, [hPressedButtons]
+    ld a, [hJoyPressed]
     and a, BUTTON_START | BUTTON_A
     or a
     jr z, .notJumping
@@ -213,9 +189,9 @@ GameLoop:
     ld bc, SFX_Jump
     call PlaySFX
 
-    	;ld a, 120 - 5
-    	;ld [wNasuY], a
-    	;jr .skipJumpUpdate
+        ;ld a, 120 - 5
+        ;ld [wNasuY], a
+        ;jr .skipJumpUpdate
 .noNewJump
     ld a, [wNasuY]
     ld b, a
@@ -497,7 +473,7 @@ DrawCheaterEggplant:
     ld [wVOAM+(4*4) + 10], a
     inc a
     ld [wVOAM+(4*4) + 14], a
-    			;ld a, %00000010
+                ;ld a, %00000010
     
 
 
@@ -566,18 +542,18 @@ EggplantCheckBC:
     ld a, $FF
     ld [wImportantSFX], a
     
-    coord hl, 7, 8
-    ld bc, String_Bonus
-    ld de, 5
-    call Copy
+    coord de, 7, 8
+    ld hl, String_Bonus
+    ld bc, 5
+    call APICopyVRAM
     
-    coord hl, 8, 9
-    ld bc, String_1000
-    ld de, 4
-    call Copy
+    coord de, 8, 9
+    ld hl, String_1000
+    ld bc, 4
+    call APICopyVRAM
 
-    ld a, 8
-    call CopyTwoRowsToScreen
+;    ld a, 8
+;    call CopyTwoRowsToScreen
 ;    			call CopyTilemapToScreen
 ;
     ;call WaitOneFrame     ; stutter
@@ -606,7 +582,7 @@ EggplantCheck:
     ld a, [wFlags]
     bit 2, a
     jr nz, .redEggplant
-    call Random
+    call APIRandom
     cp 4
     jr nc, .noRedEggplant
 .redEggplant
@@ -626,7 +602,7 @@ EggplantCheck:
 NewEggplant:
     ld a, -47 - 4
     ld [wEggplantY], a
-    call Random
+    call APIRandom
     res 7, a
     add FIELD_LEFT_EDGE + 11 + 8 - 4	;add 24 - 4
     ld [wEggplantX], a
@@ -638,16 +614,16 @@ DrawSmallPoints:
     jr z, .three
     dec a
     ld [wPts1Timer], a
-    cp a, 29
-    jr z, .addPtsOne
+;    cp a, 29
+;    jr z, .addPtsOne
     or a
-    jr nz, .three
-.removePtsOne
-    xor a
-    ld hl, wVOAM;+(4*6)
-    ld de, 4
-    call Fill
-    jr .three
+    jr z, .three
+;.removePtsOne
+;    xor a
+;    ld hl, wVOAM;+(4*6)
+;    ld de, 4
+;    call Fill
+;    jr .three
 .addPtsOne
 ;    		ld [wPts1Timer], a
     ld a, [wPts1Y]
@@ -668,16 +644,16 @@ DrawSmallPoints:
     ret z
     dec a
     ld [wPts2Timer], a
-    cp a, 29
-    jr z, .addPtsThree
+;    cp a, 29
+;    jr z, .addPtsThree
     or a
-    ret nz
-.removePtsThree
-    xor a
-    ld hl, wVOAM+(4*1)
-    ld de, 8
-    call Fill
-    ret
+    ret z
+;.removePtsThree
+;    xor a
+;    ld hl, wVOAM+(4*1)
+;    ld de, 8
+;    call Fill
+;    ret
 .addPtsThree
 ;    		ld [wPts2Timer], a
     ld a, [wPts2Y]
@@ -743,18 +719,18 @@ CapScore:
     ret
 
 DrawScore:
-    ld a, [hVBGCopyLen]
-    or a
-    ret nz
+;    ld a, [hVBGCopyLen]
+;    or a
+;    ret nz
     
-    ld a, [hVBGPalH]
-    or a
-    ret nz
+;    ld a, [hVBGPalH]
+;    or a
+;    ret nz
     
     coord hl, 15, 16
     call DrawScoreAtHL
-    ld a, 16
-    call CopyTileRowToScreen
+;    ld a, 16
+;    call CopyTileRowToScreen
     ret
     
 SetNewRedEggplant:
@@ -789,7 +765,7 @@ UpdateRedEggplant:
     or a
     jr nz, .noXMove
 
-    ld a, [wGlobalTimer]
+    ldh a, [hGlobalTimer]
     and a, %00011100
     or a
     jr z, .noXMove
@@ -876,8 +852,10 @@ RedEggplantCheck:
 
 String_Ready:
     db "READY"
+    db 0,0,0,0,0
 String_Start:
     db "START"
+    db 0,0,0,0,0
 String_Score:
     db "SCORE 00000"
 String_Bonus:

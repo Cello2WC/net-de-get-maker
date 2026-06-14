@@ -3,13 +3,13 @@ DEF wVOAM equ $C000
 
 
 
-DEF wTileMap equ $D000
-DEF wTempTileBuffer equ $D168
+;DEF wTileMap equ $D000
+;DEF wTempTileBuffer equ $D168
 
 
 DEF wHighScore equ $D7F0
 DEF wCode equ $D7F2
-DEF wGlobalTimer equ $DFFF
+;DEF wGlobalTimer equ $DFFF
 DEF wStartTimer equ $D800
 DEF wScore equ $D801
 DEF wNasuX equ $D804
@@ -36,30 +36,30 @@ DEF wFlashPal equ $D814
 DEF wTempDrawNum equ $D900
 
 
-DEF hVBGPalDest equ $D9A0
-DEF hVBGPalW equ $D9A2
-DEF hVBGPalH equ $D9A3
-DEF hVBGPalI equ $D9A4
+;DEF hVBGPalDest equ $D9A0
+;DEF hVBGPalW equ $D9A2
+;DEF hVBGPalH equ $D9A3
+;DEF hVBGPalI equ $D9A4
 
-DEF hVCopySrc equ $D9B0
-DEF hVCopyDest equ $D9B2
-DEF hVCopyLen equ $D9B4
+;DEF hVCopySrc equ $D9B0
+;DEF hVCopyDest equ $D9B2
+;DEF hVCopyLen equ $D9B4
 
-DEF hVBGCopySrc equ $D9B8
-DEF hVBGCopyDest equ $D9BA
-DEF hVBGCopyLen equ $D9BC
+;DEF hVBGCopySrc equ $D9B8
+;DEF hVBGCopyDest equ $D9BA
+;DEF hVBGCopyLen equ $D9BC
 
 
 
-DEF hRNG equ $D9C0
+;DEF hRNG equ $D9C0
 
-DEF hVBlankFlag equ $D9D0
+;DEF hVBlankFlag equ $D9D0
 DEF hCopyTo equ $D9D1
 DEF hLYCMode equ $D9D2
 
-DEF hHeldButtons equ $D9F0
-DEF hPressedButtons equ $D9F1
-DEF hPressedButtonCheck equ $D9F2
+;DEF hHeldButtons equ $D9F0
+;DEF hPressedButtons equ $D9F1
+;DEF hPressedButtonCheck equ $D9F2
 
 
 DEF wSoundData equ $DA00

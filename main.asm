@@ -46,10 +46,11 @@ MinigameStart:
     
     
     call PrepareGameOver
-    call APIFunction5B
+    call APIUpdateSpriteEngine
     call ResetInterrupts
     xor a
     ldh [$FF07], a
+    ld [wGameReturnState], a
     call DisableFlash
 	ret
 
@@ -96,17 +97,6 @@ Function42AA:
 	ld hl, $60A0
 	ret
 	
-Function430B:
-	halt
-	nop
-.loop
-	ldh a, [$FF8A]
-	and a
-	jr z, .loop
-	xor a
-	ldh [$FF8A], a
-	ret
-	
 Function4957:
 	ld [$D006], a
 	ld a, 0
@@ -116,8 +106,8 @@ Function4957:
 	call APIPackAllPalettes
 .loop
 	call APIApplyAllPalettes
-	call APIFunction5B
-	call Function430B
+	call APIUpdateSpriteEngine
+	call DelayFrame
 	ld a, [wPalPackScale]
 	ld c, a
 	ld a, [$CF86]
@@ -278,7 +268,7 @@ GameInfo:
 BeginMenu:
     ld a, $FF
     ld [$D07F], a
-    ld a, 2
+    ld a, 3
     ld c, a
     ld hl, .Options
     call APIDoMenu
@@ -293,7 +283,7 @@ BeginMenu:
     ret
 .backedOut
     ld a, $10
-    ld [$C671], a
+    ld [wGameReturnState], a
     
 	call ResetInterrupts
     
@@ -304,11 +294,13 @@ BeginMenu:
 	; $4CAF, $4CB3, $4CF5
 	dw .Start
 	dw GameInfo
+	dw DoTextThing
 	;dw .DeleteSaveData
     
 .Options
     db "Start<NULL>"
     db "Info<NULL>"
+    db "Text<NULL>"
     ;db "Del. Save<NULL>"
 	
 GameInfoData:
@@ -353,7 +345,123 @@ GameInfoData:
 	db "to write lol<NULL>"
 
 	
+DoTextThing:
+	call FadeOut
+
+
+	ld hl, Palettes
+	xor a
+	ld c, 8
+.palloop
+	push bc
+	call APISetBGPal
+	pop bc
+	dec c
+	jr nz, .palloop
+    
+    call APIDisableLCD
+    call APIUpdatePalettesVBlank
+    call APIEnableLCD
+    
+    ;call APIInitTextEngine
+
+	ld a, $08
+	ld [wTextAttributeTable], a
+	inc a
+	ld [wTextAttributeTable+1], a
+	ld a, $68
+	ld [wTextAttributeTable+2], a
 	
+
+	ld a, $00
+    ld de, TextBoxes
+    call APITextBox
+	ld hl, .text
+	call APIScrollText
+	;call APIScrollText
+	;ld bc, 0
+	;call APIDrawString
+.loop
+    call APIJoypadFrameCount
+    call APIUpdateTextEngine
+;    call APIFunction5B
+    call APIApplyAllPalettes
+    
+	push af
+    call DelayFrame
+    pop af
+    ld a, [wTextCond]
+    and a
+    jr nz, .loop
+
+
+
+	jp BeginMenu
+.text
+	db "<CLEAR>teeeeext this<LINE>"
+	db "is text awawawa<LINE>"
+	db "how about looooooooooooooooots of text?<WAIT><CLEAR>"
+	db "how about <COLOR>",1,"RED<COLOR>",0,"<LINE>text?<WAIT><CLEAR>"
+	db "how about <COLOR>",2,"nwod<LINE>edispu<COLOR>",0," text?<WAIT><CLEAR>"
+	db "i dunno what else<LINE>"
+	db "to write lol<WAIT><NULL>"
+	
+TextBoxes:
+	db 0,0, 18,2, 1, 0,0,0
+	
+	
+DelayFrame:
+    halt
+    nop
+
+.loop
+    ldh a, [hVBlankFlag]
+    and a
+    jr z, .loop
+
+    xor a
+    ldh [hVBlankFlag], a
+    ret
+    
+MACRO RGB
+rept _NARG / 3
+    dw palred (\1) + palgreen (\2) + palblue (\3)
+    shift 3
+endr
+ENDM
+
+DEF palred   EQUS "(1 << 0) *"
+DEF palgreen EQUS "(1 << 5) *"
+DEF palblue  EQUS "(1 << 10) *"
+
+MACRO RGB24
+    dw palred (\1 >> 3) + palgreen (\2 >> 3) + palblue (\3 >> 3)
+ENDM
+
+Palettes:
+BGPals:
+REPT 2
+; white on black
+    RGB24 $FF, $FF, $FF
+    RGB24 $AA, $AA, $AA
+    RGB24 $55, $55, $55
+    RGB24 $00, $00, $00
+    
+	RGB24 $FF, $00, $00
+    RGB24 $AA, $00, $00
+    RGB24 $55, $00, $00
+    RGB24 $00, $00, $00
+    
+	RGB24 $00, $FF, $00
+    RGB24 $00, $AA, $00
+    RGB24 $00, $55, $00
+    RGB24 $00, $00, $00
+    
+	RGB24 $00, $00, $FF
+    RGB24 $00, $00, $AA
+    RGB24 $00, $00, $55
+    RGB24 $00, $00, $00
+ENDR
 	
 
 include "include/footer.asm"

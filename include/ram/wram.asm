@@ -30,9 +30,39 @@ wBankASelectBackup: db ; C114
 wBankBNumBackup:    db ; C115
 wBankBSelectBackup: db ; C116
 
-ds $A9
+ds $89
 
-wC1C0: dw ; C1C0..1
+wC1A0: db ; C1A0
+wC1A1: db ; C1A1
+wC1A2: db ; C1A2
+
+
+wDefaultTextAttribute: db ; C1A3
+wTextX: db ; C1A4
+wC1A5: dw ; C1A5..6 ; output of APIFunction43, set to hl + wC1B5[0..2]
+wTextY: db ; C1A7
+wTextWidth: db ; C1A8
+wTextHeight: db ; C1A9
+wTextBoxBorder: db ; C1AA
+wNextCharPointer: dw ; C1AB..C
+wNextCharPointerBackup: dw ; C1AD..E
+wTextVRAMBank: db ; C1AF
+
+wTextAttributeTable: ds 3 ; C1B0..2
+wC1B3: db ; C1B3
+wC1B4: db ; C1B4
+wC1B5: dw ; C1B5..6
+wC1B7: db ; C1B7
+wTextCond: db ; C1B8
+wTextDepth: db ; C1B9
+wC1BA: db ; C1BA
+wC1BB: db ; C1BB
+wC1BC: db ; C1BC
+wC1BD: db ; C1BD
+wC1BE: db ; C1BE
+wTextAttribute: db ; C1BF
+
+wTextFunctionPointer: dw ; C1C0..1
 wC1C2: db ; C1C2
 wC1C3: db ; C1C3
 wC1C4: db ; C1C4
@@ -115,7 +145,11 @@ wC66D: db
 wC66E: db
 wC66F: db
 wC670: db
-wC671: db
+
+; 0x00 - Game over, award points
+; 0x10 - Backed out, no game over screen
+wGameReturnState: db ; C671
+
 wC672: db
 wC673: db
 wC674: db
@@ -123,6 +157,21 @@ wC675: dw ; C675
 wOpenFile::
 wOpenFileData:: dw ; C677
 wOpenFileIndex:: db ; C679
+
+SECTION "WRAM Page 7", WRAM0[$C700]
+wSYS0Copy::
+wSYS0TextSpeed:: db
+wSYS0Unknown1:: db
+wSYS0PasswordSaved:: db
+wSYS0CursorMode:: db
+wSYS0SoundMode:: db
+wSYS0HiddenLevel:: db
+wSYS0PlayerCharacter:: db
+wSYS0Unknown2:: db
+wSYS0RoomLevel:: db
+wSYS0Unknown3:: dw
+wSYS0SavedPassword:: ds 15
+wSYS0Unknown4:: ds 22
 
 
 SECTION "WRAM Page 8", WRAM0[$C800]

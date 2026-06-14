@@ -1,39 +1,27 @@
 TitleScreen::
-
-    call ClearVOAM
-    call UseMapOne
-    call ClearTilemap
+    ld a, LYCMODE_TITLE
+    call SetLYCMode
     call DrawBorders
+    
+    call ClearTilemap_KeepBorders
     call DrawTitle
-;    call CopyTilemapToScreen
-
-    call DisableLCD
-    call CopyScreen
-;    ld e, $68
-;    call Copy
-    call EnableLCD
-
-;    ld a, LYCMODE_TITLE
-;    call SetLYCMode
 
     ld bc, TitleSong_Ptrs
     call PlaySong
-
-    call UseMapZero
     
 .inputLoop
-    ld a, [hPressedButtons]
+    ld a, [hJoyPressed]
     and BUTTON_START | BUTTON_A
     or a
     jp nz, StartGame
     
     
-    ld a, [hPressedButtons]
+    ld a, [hJoyPressed]
     and BUTTON_B
     or a
     ret nz
 
-    ld a, [hPressedButtons]
+    ld a, [hJoyPressed]
     	;and BUTTON_UP | BUTTON_DOWN | BUTTON_LEFT | BUTTON_RIGHT
     or a
     jr nz, .checkCode
@@ -73,66 +61,47 @@ TitleScreen::
 
 .code
     db $80, $40, $80, $40, $10, $10, $20, $20
+    
+; bc - src
+; hl - dest
+; e - len
+BackwardsCopy:
+.loop
+    ld a, [bc]
+    ld [hld], a
+    dec bc
+    dec e
+    jr nz, .loop
+    ret
 
 DrawTitle:
 
     xor a
     ld [hCopyTo], a
-    coord hl, 0, 2
-    ld bc, TitleTilePattern
-    ld de, TitleTilePattern_End - TitleTilePattern
-    call Copy
+    coord de, 0, 2
+    ld hl, TitleTilePattern
+    ld bc, $1307
+    call APIScreenRectAttr
 
-    
-;    bgcoord hl, $1F, $02
-;    ld bc, $20
-;    ld d, 8
-    ;call WaitOneFrame
-;    ld a, $83
-;.specialTileLoop
-;    ld [hl], a
-;    add hl, bc
-;    dec d
-;    jr nz, .specialTileLoop
+    coord de, 5, 11
+    ld hl, String_PushStart
+    ld bc, 10
+    call APICopy
 
-;    ld [$9D1F], a
+    coord de, 3, 13
+    ld hl, String_HiScore
+    ld bc, 8
+    call APICopy
 
-    coord hl, 5, 11
-    ld bc, String_PushStart
-    ld de, 10
-    call Copy
+    coord de, 6, 15
+    ld hl, String_Copyright
+    ld bc, 8
+    call APICopy
 
-    coord hl, 3, 13
-    ld bc, String_HiScore
-    ld de, 8
-    call Copy
-
-    coord hl, 6, 15
-    ld bc, String_Copyright
-    ld de, 8
-    call Copy
-
-    coord hl, 12, 13
-    ld de, 5
-    ld a, "0"
-    call Fill
-
-;    ld a, $0A
-;    ld [$0000], a
-;
-;    ld a, [$A000]
-;    cp $FF
-;    jr z, .highScoreFromRAM
-;    ld [wScore], a
-;    ld [wHighScore], a
-;    ld a, [$A001]
-;    ld [wScore+1], a
-;    ld [wHighScore+1], a
-;
-;    xor a
-;    ld [$0000], a
-;
-;    jr .highScoreLoaded
+    coord de, 12, 13
+    ld hl, String_Zeroes
+    ld bc, 5
+    call APICopy
 
 .highScoreFromRAM
     
@@ -142,34 +111,25 @@ DrawTitle:
     ld [wScore+1], a
 .highScoreLoaded
     coord hl, $0C, $0D
-    call DrawScoreAtHL
-
-;    call IsGBC
-;    ret z
-    
-    bgcoord hl, 0, 2
-    lb de, SCR_WIDTH, 7
-    ld a, 3
-    call PaletteRect
-    ld a, 2
-    call WaitAFrames
-
-    
-    bgcoord hl, 0, 11
-    lb de, SCR_WIDTH, 6
-    xor a
-    jp PaletteRect
-    ret
+    jp DrawScoreAtHL
     
 
 TitleTilePattern:
-    db $A4, $A5, $83, $A6, $83, $A7, $A8, $A8, $A9, $83, $A7, $A8, $A8, $A9, $83, $A6, $83, $83, $A6, $83
-    db $AA, $AB, $83, $AC, $83, $AC, $83, $83, $AC, $83, $AC, $83, $83, $AD, $83, $AC, $83, $83, $AC, $83
-    db $AE, $AF, $A5, $AC, $83, $AC, $83, $83, $AC, $83, $AC, $83, $83, $83, $83, $AC, $83, $83, $AC, $83
-    db $AC, $B0, $AB, $AC, $83, $B1, $B2, $B2, $B3, $83, $B4, $B2, $B2, $A9, $83, $AC, $83, $83, $AC, $83
-    db $AC, $B5, $AF, $B6, $83, $AC, $83, $83, $AC, $83, $83, $83, $83, $AC, $83, $AC, $83, $83, $AC, $83
-    db $AC, $83, $B0, $BA, $83, $AC, $83, $83, $AC, $83, $A6, $83, $83, $AC, $83, $AC, $83, $83, $AC, $83
-    db $AD, $83, $B5, $B7, $83, $AD, $83, $83, $AD, $83, $B8, $B2, $B2, $B9, $83, $B8, $B2, $B2, $B9, $83
+    db $A4, $A5, $83, $A6, $83, $A7, $A8, $A8, $A9, $83, $A7, $A8, $A8, $A9, $83, $A6, $83, $83, $A6
+    db $AA, $AB, $83, $AC, $83, $AC, $83, $83, $AC, $83, $AC, $83, $83, $AD, $83, $AC, $83, $83, $AC
+    db $AE, $AF, $A5, $AC, $83, $AC, $83, $83, $AC, $83, $AC, $83, $83, $83, $83, $AC, $83, $83, $AC
+    db $AC, $B0, $AB, $AC, $83, $B1, $B2, $B2, $B3, $83, $B4, $B2, $B2, $A9, $83, $AC, $83, $83, $AC
+    db $AC, $B5, $AF, $B6, $83, $AC, $83, $83, $AC, $83, $83, $83, $83, $AC, $83, $AC, $83, $83, $AC
+    db $AC, $83, $B0, $BA, $83, $AC, $83, $83, $AC, $83, $A6, $83, $83, $AC, $83, $AC, $83, $83, $AC
+    db $AD, $83, $B5, $B7, $83, $AD, $83, $83, $AD, $83, $B8, $B2, $B2, $B9, $83, $B8, $B2, $B2, $B9
+    
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
+    db $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03, $03
 TitleTilePattern_End:
 
 
@@ -181,3 +141,6 @@ String_HiScore:
 
 String_Copyright:
     db $BB, $BC, $BD, $83, $BE, $BE, $BF, $C0
+    
+String_Zeroes:
+    db "00000"
