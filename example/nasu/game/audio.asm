@@ -7,18 +7,17 @@ DEF SILENT_ENV equ %00000000
 InitSound:
 
     ld a, $FF
-    ldh [rNR52], a
+;    ldh [rNR51], a
+;    ldh [rNR52], a
     ld [wMusicFramesPerStep], a
 
-    ld hl, $FF10
-    ld de, $FF25 - $FF10
-    xor a
-    call Fill
+;    ld hl, $FF10
+;    ld de, $FF25 - $FF10
+;    xor a
+;    call Fill
 
-    ld a, $FF
-    ldh [rNR51], a
-    ld a, %01110111
-    ldh [rNR50], a   
+;    ld a, %01110111
+;    ldh [rNR50], a   
 
     ld a, %10000000
     ld [rNR11], a

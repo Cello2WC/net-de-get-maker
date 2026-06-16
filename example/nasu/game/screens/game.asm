@@ -46,7 +46,7 @@ StartGame::
     call WaitAFrames
     
     
-    call APIJoypadFrameCount
+;    call APIJoypadFrameCount
 
 .skipPal
 
@@ -103,7 +103,7 @@ StartGame::
     
 
 GameLoop:
-    call APIJoypadFrameCount
+;    call APIJoypadFrameCount
     ld a, [wStartTimer]  
     or a
     jr z, .skipStart

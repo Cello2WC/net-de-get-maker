@@ -41,16 +41,6 @@ include "include/header.asm"
 
 
 MinigameStart:
-	
-	; I mess with these, so I'm backing them up to restore later.
-	ldh a, [rSTAT]
-	ld b, a
-	ldh a, [$FFFF]
-	ld c, a
-	; I'm trying to avoid using too much of the stack,
-	; because Net de Get puts its stack in HRAM, which is tiny.
-	push bc
-	
 	; This is the menu at the beginning of the game,
 	; with "Start" and "Info" as options.
 	call BeginMenu
@@ -59,6 +49,15 @@ MinigameStart:
 	ld a, [wMenuChoice]
 	cp $ff
 	ret z
+
+		; I mess with these, so I'm backing them up to restore later.
+	ldh a, [rSTAT]
+	ld b, a
+	ldh a, [$FFFF]
+	ld c, a
+	; I'm trying to avoid using too much of the stack,
+	; because Net de Get puts its stack in HRAM, which is tiny.
+	push bc
 
 	; This is where I put the majority of my game.
 	call GameBody
@@ -317,6 +316,10 @@ GameBody:
 
 	call APIEnableLCD
 	
+	; Play silence in my own audio engine, too
+	ld bc, Silence_Ptrs
+	call PlaySong
+	
 	
 	di
 	
@@ -337,12 +340,10 @@ GameBody:
 	call APISetLCDC
 	ld de, 0
 	call APISetTimer
-	call APISetSerial	
+	call APISetSerial
 	ei
 	
-	; Play silence in my own audio engine, too
-	ld bc, Silence_Ptrs
-	call PlaySong
+
 	
 	; Load Hi-Score from file
 	ld bc, 2

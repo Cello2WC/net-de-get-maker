@@ -11,7 +11,7 @@ TitleScreen::
     
 .inputLoop
     
-    call APIJoypadFrameCount
+;    call APIJoypadFrameCount
 
     ld a, [hJoyPressed]
     and BUTTON_START | BUTTON_A
