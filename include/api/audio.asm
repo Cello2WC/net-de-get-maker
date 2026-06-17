@@ -2,8 +2,9 @@
 ; 
 ; Loads song data into the audio engine, but doesn't play it.
 ; 
-; @param	de	song id + 0x20
-; @param	hl	default audio engine parameters pointer? (usually 0x6000)
+; @param	d	Song Bank Select
+; @param	e	Song Bank ID
+; @param	hl	Song Data Pointer (From bank B, so 0x6000 - 0x7FFF)
 ; 
 ; @see		APIPlaySong
 APILoadSong::
