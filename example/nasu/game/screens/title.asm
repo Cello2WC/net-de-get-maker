@@ -6,8 +6,10 @@ TitleScreen::
     call ClearTilemap_KeepBorders
     call DrawTitle
 
-    ld bc, TitleSong_Ptrs
-    call PlaySong
+ ;   ld bc, TitleSong_Ptrs
+ ;   call PlaySong
+    ld a, SOUNDBANK_NASU_MUS_TITLE
+    call APIPlaySong
     
 .inputLoop
     
@@ -57,8 +59,8 @@ TitleScreen::
     set 2, a
     ld [wFlags], a
 
-    ld bc, SFX_Lose
-    call PlaySFX
+    ld a, NASU_SFX_LOSE
+    call APIPlaySFX
 
     jp .codeReturn
 

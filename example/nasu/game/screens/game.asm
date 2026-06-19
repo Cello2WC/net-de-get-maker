@@ -23,8 +23,8 @@ StartGame::
     ld a, 4
     call SetLYCMode
 
-    ld bc, Silence_Ptrs
-    call PlaySong
+    ld a, SOUNDBANK_NASU_MUS_SILENCE
+    call APIPlaySong
 
     call ClearTilemap_KeepBorders
     ld a, 1
@@ -60,8 +60,8 @@ StartGame::
     
     call WaitOneFrame
 
-    ld bc, GamePlaySong_Ptrs
-    call PlaySong
+    ld a, SOUNDBANK_NASU_MUS_GAME
+    call APIPlaySong
     
         
 
@@ -190,8 +190,8 @@ GameLoop:
     ld a, 25
     ld [wNasuJumpTimer], a
 
-    ld bc, SFX_Jump
-    call PlaySFX
+    ld a, NASU_SFX_JUMP
+    call APIPlaySFX
     
 .noNewJump
     ld a, [wNasuY]
@@ -231,8 +231,8 @@ GameLoop:
 .finishJump
     ld a, 120
     ld [wNasuY], a
-    ld bc, SFX_Land
-    call PlaySFX
+    ld a, NASU_SFX_LAND
+    call APIPlaySFX
 .skipJumpUpdate
     call EggplantCheck
     call RedEggplantCheck
@@ -246,14 +246,14 @@ GameLoop:
     and a, %00111111
     cp a, 1
     jr nz, .otherSound
-    ld bc, SFX_Walk1
-    call PlaySFX
+    ld a, NASU_SFX_WALK1
+    call APIPlaySFX
     jr .noSound
 .otherSound
     cp a, 13
     jr nz, .noSound
-    ld bc, SFX_Walk2
-    call PlaySFX
+    ld a, NASU_SFX_WALK2
+    call APIPlaySFX
 .noSound
 
 .jumped
@@ -401,8 +401,8 @@ EggplantCheckBC:
     set 0, a
     ld [wFlags], a
 
-    ld bc, SFX_Get
-    call PlaySFX
+    ld a, NASU_SFX_GET
+    call APIPlaySFX
 
     scf
     ret
@@ -413,8 +413,8 @@ EggplantCheckBC:
     call Add1000Points
 
     
-    ld bc, SFX_Bonus
-    call PlaySFX
+    ld a, NASU_SFX_BONUS
+    call APIPlaySFX
 
     ld a, $FF
     ld [wImportantSFX], a

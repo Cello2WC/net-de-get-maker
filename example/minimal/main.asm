@@ -1,7 +1,7 @@
 include "include/api.asm"
 include "include/charmap.asm"
-include "include/constants/icon_constants.asm"
 include "include/macros.asm"
+include "include/constants.asm"
 include "include/ram.asm"
 
 ; Affects minigame's primary icon

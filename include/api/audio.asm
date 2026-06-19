@@ -1,13 +1,13 @@
-; APILoadSong - 0246
+; APILoadSoundBank - 0246
 ; 
 ; Loads song data into the audio engine, but doesn't play it.
 ; 
-; @param	d	Song Bank Select
-; @param	e	Song Bank ID
-; @param	hl	Song Data Pointer (From bank B, so 0x6000 - 0x7FFF)
+; @param	d	Sound Bank Select
+; @param	e	Sound Bank ID
+; @param	hl	Sound Data Pointer (From bank B, so 0x6000 - 0x7FFF)
 ; 
 ; @see		APIPlaySong
-APILoadSong::
+APILoadSoundBank::
 	jp $21d7
 
 ; [rBankBNum ($37FF)],            [wBankBNumBackup]    = [$C663]
@@ -29,26 +29,28 @@ APILoadSong::
 ;     
 
 ; well this sure does SOMETHING to the music!
+; Maybe APIPlaySFX?
 APIFunction53:: ; 0249
 	jp $2242
 
 ; APIPlaySong -- 024C
 ; 
-; Plays song data last loaded by APILoadSong [0246]
+; Plays song from data loaded by APILoadSoundBank [0246]
 ; 
-; @param	a	? (usually $81) [goes to $CF80, $C66B, $C665]
+; @param	a	Song ID in this sound bank, with bit 7 set.
 ; 
-; @see		APILoadSong
+; @see		APILoadSoundBank
 APIPlaySong::
 	jp $22a7
 	
-; APISilenceAudio -- 024F
+; APIPlaySFX -- 024F
 ; 
-; silences all currently playing notes,
-; but does NOT stop music from continuing to play
+; Plays sound effect from data loaded by APILoadSoundBank [0246]
 ;
-; @param	a	? (usually $80) [goes to $CF82]
-APISilenceAudio::
+; @param	a	SFX ID in this sound bank, with bit 7 set.
+;
+; @see		APILoadSoundBank
+APIPlaySFX::
 	jp $230c
 	
 ; APIStopAudio -- 0252

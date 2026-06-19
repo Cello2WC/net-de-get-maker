@@ -39,4 +39,13 @@ MACRO text
 	db \#, "<NULL>"
 ENDM
 
+MACRO bigdw ; big-endian word
+	rept _NARG
+		db HIGH(\1), LOW(\1)
+		shift
+	endr
+ENDM
+
 include "include/macros/megasprites.asm"
+include "include/macros/const.asm" ; stolen from pokecrystal
+include "include/macros/audio.asm"

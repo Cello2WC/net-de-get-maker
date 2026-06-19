@@ -1,7 +1,7 @@
 include "include/api.asm"
 include "include/charmap.asm"
-include "include/constants/icon_constants.asm"
 include "include/macros.asm"
+include "include/constants.asm"
 include "include/ram.asm"
 include "include/hardware.inc"
 
@@ -268,16 +268,24 @@ INCLUDE "game/constants.asm"
 
 GameBody:
 	
-	; Silence Net de Get's audio engine...
-	ld hl, $6000
-	ld de, 0 ; Silence
-	call APILoadSong
-	ld a, $81
-	call APIPlaySong
-
-	; ... so that I can use my own!
-	; (As far as I know, this is the only way to have custom music.)
-	call InitSound
+	
+	call APIStopAudio
+	; Load the sound bank
+;	ld hl, $6000
+;	ld de, MUSIC_21
+	ld hl, Soundbank_NASU
+	ld d, $08
+	ld a, [wMinigameFlashBank]
+	ld e, a
+	call APILoadSoundBank
+	
+	
+	
+	
+;	ld a, SOUNDBANK_NASU_MUS_SILENCE
+;	call APIPlaySong
+ ;   ld a, NASU_SFX_SILENCE
+  ;  call APIPlaySFX
 
 	; initialize minigame-specific memory
 	xor a
@@ -315,11 +323,6 @@ GameBody:
 	call APICopyVRAM
 
 	call APIEnableLCD
-	
-	; Play silence in my own audio engine, too
-	ld bc, Silence_Ptrs
-	call PlaySong
-	
 	
 	di
 	
@@ -425,13 +428,17 @@ Fill:
 	jr nz, .loop
 	pop bc
 	ret
+	
+
+INCLUDE "game/audio/soundbank_nasu.asm"
+	
 
 INCLUDE "game/megasprites.asm"
 
 INCLUDE "game/vblank.asm"
 INCLUDE "game/hblank.asm"
 INCLUDE "game/tilemap.asm"
-INCLUDE "game/audio.asm"
+;INCLUDE "game/audio.asm"
 
 INCLUDE "game/screens/title.asm"
 INCLUDE "game/screens/game.asm"
@@ -454,8 +461,11 @@ GfxPoints:   INCBIN "game/gfx/points.2bpp"
 GfxEggplant: INCBIN "game/gfx/eggplant.2bpp"
 GfxEnd:
 
-INCLUDE "game/audio_includes.asm"
+;INCLUDE "game/audio_includes.asm"
 
 popc
+
+;SECTION "Music", ROMX[$6000]
+
 
 include "include/footer.asm"

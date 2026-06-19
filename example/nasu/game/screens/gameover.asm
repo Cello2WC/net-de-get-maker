@@ -1,10 +1,10 @@
 GameOver:
 
-    ld bc, Silence_Ptrs
-    call PlaySong
+    ld a, SOUNDBANK_NASU_MUS_SILENCE
+    call APIPlaySong
 
-    ld bc, SFX_Lose
-    call PlaySFX
+    ld a, NASU_SFX_LOSE
+    call APIPlaySFX
 
     ld a, 3
     call SetLYCMode
@@ -61,6 +61,12 @@ GameOver:
 .noHigh
     xor a
     ld [wGameReturnState], a
+    
+    
+;    ld a, NASU_SFX_SILENCE
+;    call APIPlaySFX
+    call APIStopAudio
+    
     ret
     
 
